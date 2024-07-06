@@ -1,0 +1,15 @@
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\bin\Debug\net7.0\TinyIDS.exe
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\bin\Debug\net7.0\TinyIDS.deps.json
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\bin\Debug\net7.0\TinyIDS.runtimeconfig.json
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\bin\Debug\net7.0\TinyIDS.dll
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\bin\Debug\net7.0\TinyIDS.pdb
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\TinyIDS.csproj.AssemblyReference.cache
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\TinyIDS.GeneratedMSBuildEditorConfig.editorconfig
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\TinyIDS.AssemblyInfoInputs.cache
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\TinyIDS.AssemblyInfo.cs
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\TinyIDS.csproj.CoreCompileInputs.cache
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\TinyIDS.dll
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\refint\TinyIDS.dll
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\TinyIDS.pdb
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\TinyIDS.genruntimeconfig.cache
+E:\Stuff\IDS Machine Learning\TinyIDS\TinyIDS\obj\Debug\net7.0\ref\TinyIDS.dll
