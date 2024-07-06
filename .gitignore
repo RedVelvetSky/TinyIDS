@@ -1,0 +1,5 @@
+# Ignore all files in the Docs directory
+Docs/*
+
+# Do not ignore the PDF file
+!Docs/documentation_ids.pdf
