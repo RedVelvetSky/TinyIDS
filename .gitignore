@@ -3,3 +3,15 @@ Docs/*
 
 # Do not ignore the PDF file
 !Docs/documentation_ids.pdf
+
+# Ignore specific file extensions
+*.vsidx
+*.cache
+
+# Ignore Debug build output
+Source/TinyIDS/TinyIDS/bin/Debug/
+Source/TinyIDS/TinyIDS/obj/Debug/
+
+# Ignore Visual Studio files
+Source/TinyIDS/.vs/
+Source/TinyIDS/TinyIDS/.vs/

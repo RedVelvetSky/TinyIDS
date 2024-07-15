@@ -12,4 +12,8 @@
   <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <SourceRoot Include="C:\Users\SpaceDimension\.nuget\packages\" />
   </ItemGroup>
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)microsoft.ml\3.0.1\build\netstandard2.0\Microsoft.ML.props" Condition="Exists('$(NuGetPackageRoot)microsoft.ml\3.0.1\build\netstandard2.0\Microsoft.ML.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.ml.fasttree\3.0.1\build\netstandard2.0\Microsoft.ML.FastTree.props" Condition="Exists('$(NuGetPackageRoot)microsoft.ml.fasttree\3.0.1\build\netstandard2.0\Microsoft.ML.FastTree.props')" />
+  </ImportGroup>
 </Project>

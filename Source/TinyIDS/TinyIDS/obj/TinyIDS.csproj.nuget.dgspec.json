@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Stuff\\IDS Machine Learning\\TinyIDS\\TinyIDS\\TinyIDS.csproj": {}
+    "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\TinyIDS.csproj": {}
   },
   "projects": {
-    "E:\\Stuff\\IDS Machine Learning\\TinyIDS\\TinyIDS\\TinyIDS.csproj": {
+    "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\TinyIDS.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Stuff\\IDS Machine Learning\\TinyIDS\\TinyIDS\\TinyIDS.csproj",
+        "projectUniqueName": "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\TinyIDS.csproj",
         "projectName": "TinyIDS",
-        "projectPath": "E:\\Stuff\\IDS Machine Learning\\TinyIDS\\TinyIDS\\TinyIDS.csproj",
+        "projectPath": "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\TinyIDS.csproj",
         "packagesPath": "C:\\Users\\SpaceDimension\\.nuget\\packages\\",
-        "outputPath": "E:\\Stuff\\IDS Machine Learning\\TinyIDS\\TinyIDS\\obj\\",
+        "outputPath": "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\SpaceDimension\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -39,6 +39,28 @@
       "frameworks": {
         "net7.0": {
           "targetAlias": "net7.0",
+          "dependencies": {
+            "Microsoft.ML": {
+              "target": "Package",
+              "version": "[3.0.1, )"
+            },
+            "Microsoft.ML.FastTree": {
+              "target": "Package",
+              "version": "[3.0.1, )"
+            },
+            "PacketDotNet": {
+              "target": "Package",
+              "version": "[1.4.7, )"
+            },
+            "SharpPcap": {
+              "target": "Package",
+              "version": "[6.3.0, )"
+            },
+            "Spectre.Console": {
+              "target": "Package",
+              "version": "[0.49.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
