@@ -69,7 +69,7 @@ namespace TinyIDS.Services
 
             // Register our handler function to the 'packet arrival' event
             device.OnPacketArrival +=
-                new PacketArrivalEventHandler(device_OnPacketArrival);
+                new PacketArrivalEventHandler(device_OnPacketArrivalCapture);
 
             // Open the device for capturing
             int readTimeoutMilliseconds = 1000;
@@ -102,7 +102,6 @@ namespace TinyIDS.Services
 
         public void ReadCaptureFile(string name)
         {
-
 
             var ver = Pcap.SharpPcapVersion;
 
@@ -147,12 +146,11 @@ namespace TinyIDS.Services
 
             // Register our handler function to the 'packet arrival' event
             device.OnPacketArrival +=
-                new PacketArrivalEventHandler(device_OnPacketArrival);
+                new PacketArrivalEventHandler(device_OnPacketArrivalRead);
 
             Console.WriteLine();
             Console.WriteLine
-                ("-- Capturing from '{0}', hit 'Ctrl-C' to exit...",
-                capFile);
+                ("-- Capturing from '{0}', hit 'Ctrl-C' to exit...", capFile);
 
             var startTime = DateTime.Now;
 
@@ -175,9 +173,9 @@ namespace TinyIDS.Services
         private static int packetIndex = 0;
 
         /// <summary>
-        /// Prints the time and length of each received packet
+        /// Prints the time and length of each received packet (ORIGINAL CAPTURE VERSION)
         /// </summary>
-        //private static void device_OnPacketArrival(object sender, PacketCapture e)
+        //private static void device_OnPacketArrivalCapture(object sender, PacketCapture e)
         //{
         //    //var device = (ICaptureDevice)sender;
 
@@ -201,6 +199,26 @@ namespace TinyIDS.Services
         //    }
         //}
 
+        //ORIGINAL READ VERSION
+        private static void device_OnPacketArrivalRead(object sender, PacketCapture e)
+        {
+            packetIndex++;
+
+            var rawPacket = e.GetPacket();
+            var packet = PacketDotNet.Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
+
+            var ethernetPacket = packet.Extract<EthernetPacket>();
+            if (ethernetPacket != null)
+            {
+                Console.WriteLine("{0} At: {1}:{2}: MAC:{3} -> MAC:{4}",
+                                  packetIndex,
+                                  e.Header.Timeval.Date.ToString(),
+                                  e.Header.Timeval.Date.Millisecond,
+                                  ethernetPacket.SourceHardwareAddress,
+                                  ethernetPacket.DestinationHardwareAddress);
+            }
+        }
+
         class PacketStatistics
         {
             public double AvgIpt { get; set; }
@@ -220,8 +238,7 @@ namespace TinyIDS.Services
             public double Duration => (TimeEnd - TimeStart).TotalSeconds;
         }
 
-
-        private static void device_OnPacketArrival(object sender, PacketCapture e)
+        private static void device_OnPacketArrivalCapture(object sender, PacketCapture e)
         {
             // Write the packet to the file
             var rawPacket = e.GetPacket();
@@ -233,124 +250,95 @@ namespace TinyIDS.Services
                 var packet = PacketDotNet.Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
                 var ethernetPacket = packet.Extract<EthernetPacket>();
 
-                // Check if the packet contains an IP packet
-                //var ipPacket = PacketDotNet.IpPacket.GetEncapsulated(packet);
-
                 PrintType(packet);
             }
-
-                //if (packet is IPPacket)
-                //{
-                //    Console.WriteLine("The packet is an IP packet.");
-                //}
-
-
-                //    if (ethernetPacket != null)
-                //    {
-                //        Console.WriteLine("{0} At: {1}:{2}: MAC:{3} -> MAC:{4}",
-                //                          packetIndex,
-                //                          e.Header.Timeval.Date.ToString(),
-                //                          e.Header.Timeval.Date.Millisecond,
-                //                          ethernetPacket.SourceHardwareAddress,
-                //                          ethernetPacket.DestinationHardwareAddress);
-                //    }
-                //}
-
-                //if (ipPacket != null)
-                //{
-                //    var srcIp = ipPacket.SourceAddress.ToString();
-                //    var destIp = ipPacket.DestinationAddress.ToString();
-                //    var protocol = (int)ipPacket.Protocol;
-
-                //    // Determine src and dest ports if applicable
-                //    int srcPort = 0, destPort = 0;
-                //    if (ipPacket is PacketDotNet.TcpPacket tcpPacket)
-                //    {
-                //        srcPort = tcpPacket.SourcePort;
-                //        destPort = tcpPacket.DestinationPort;
-                //    }
-                //    else if (ipPacket is PacketDotNet.UdpPacket udpPacket)
-                //    {
-                //        srcPort = udpPacket.SourcePort;
-                //        destPort = udpPacket.DestinationPort;
-                //    }
-
-                //    // Find or create a flow entry
-                //    var flow = packetFlows.FirstOrDefault(pf => pf.SrcIp == srcIp && pf.DestIp == destIp && pf.SrcPort == srcPort && pf.DestPort == destPort && pf.Protocol == protocol);
-                //    if (flow == null)
-                //    {
-                //        flow = new PacketFlow
-                //        {
-                //            SrcIp = srcIp,
-                //            DestIp = destIp,
-                //            SrcPort = srcPort,
-                //            DestPort = destPort,
-                //            Protocol = protocol,
-                //            TimeStart = rawPacket.Timeval.Seconds * 1000000 + rawPacket.Timeval.MicroSeconds,
-                //            TimeEnd = rawPacket.Timeval.Seconds * 1000000 + rawPacket.Timeval.MicroSeconds,
-                //            NumPktsIn = 0,
-                //            NumPktsOut = 0,
-                //            BytesIn = 0,
-                //            BytesOut = 0,
-                //            TotalEntropy = 0,
-                //            Label = "unknown" // Default label, you can modify it as needed
-                //        };
-                //        packetFlows.Add(flow);
-                //    }
-
-                //    // Update the flow entry
-                //    long packetTime = rawPacket.Timeval.Seconds * 1000000 + rawPacket.Timeval.MicroSeconds;
-                //    double packetEntropy = CalculateEntropy(rawPacket.Data); // Implement entropy calculation
-
-                //    flow.TimeEnd = packetTime;
-                //    flow.TotalEntropy += packetEntropy;
-
-                //    if (srcIp == flow.SrcIp)
-                //    {
-                //        flow.BytesOut += rawPacket.Data.Length;
-                //        flow.NumPktsOut++;
-                //    }
-                //    else
-                //    {
-                //        flow.BytesIn += rawPacket.Data.Length;
-                //        flow.NumPktsIn++;
-                //    }
-
-                //    // Calculate the average inter-packet time and other statistics
-                //    flow.Duration = (flow.TimeEnd - flow.TimeStart) / 1000000.0;
-                //    flow.AvgInterPacketTime = flow.Duration / (flow.NumPktsIn + flow.NumPktsOut);
-                //    flow.Entropy = flow.TotalEntropy / (flow.NumPktsIn + flow.NumPktsOut);
-
-                //    // Print out the updated flow information
-                //    Console.WriteLine($"Flow updated: SrcIp={flow.SrcIp}, DestIp={flow.DestIp}, Protocol={flow.Protocol}, BytesIn={flow.BytesIn}, BytesOut={flow.BytesOut}");
-                //}
-
-                //packetIndex++;
         }
 
-        // Евент хендлер чтобы читать пакет
+        private static List<DateTime> packetTimestamps = new List<DateTime>();
+        private static int totalBytes = 0;
+        private static int packetCount = 0;
 
-        //private static void device_OnPacketArrival(object sender, PacketCapture e)
-        //{
-        //    packetIndex++;
+        private static void UpdateStatistics(Packet packet, PacketStatistics stats)
+        {
+            // Capture the current time
+            DateTime currentTime = DateTime.Now;
+            packetTimestamps.Add(currentTime);
 
-        //    var rawPacket = e.GetPacket();
-        //    var packet = PacketDotNet.Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
+            if (packetTimestamps.Count > 1)
+            {
+                double totalInterPacketTime = 0;
 
-        //    var ethernetPacket = packet.Extract<EthernetPacket>();
-        //    if (ethernetPacket != null)
-        //    {
-        //        Console.WriteLine("{0} At: {1}:{2}: MAC:{3} -> MAC:{4}",
-        //                          packetIndex,
-        //                          e.Header.Timeval.Date.ToString(),
-        //                          e.Header.Timeval.Date.Millisecond,
-        //                          ethernetPacket.SourceHardwareAddress,
-        //                          ethernetPacket.DestinationHardwareAddress);
-        //    }
-        //}
+                for (int i = 1; i < packetTimestamps.Count; i++)
+                {
+                    totalInterPacketTime += (packetTimestamps[i] - packetTimestamps[i - 1]).TotalSeconds;
+                }
+
+                stats.AvgIpt = totalInterPacketTime / (packetTimestamps.Count - 1);
+            }
+
+            if (stats.TimeStart == default)
+            {
+                stats.TimeStart = currentTime;
+            }
+
+            stats.TimeEnd = currentTime;
+            stats.NumPktsIn++;
+            stats.NumPktsOut++;
+            stats.BytesIn += packet.Bytes.Length;
+            stats.BytesOut += packet.Bytes.Length;
+            totalBytes += packet.Bytes.Length;
+            packetCount++;
+
+            // Compute entropy
+            stats.Entropy = ComputeEntropy(packet.Bytes);
+            stats.TotalEntropy = ComputeEntropy(packetTimestamps.SelectMany(d => BitConverter.GetBytes(d.Ticks)).ToArray());
+
+            // Print statistics
+            PrintStatistics(stats);
+        }
+
+        private static double ComputeEntropy(byte[] data)
+        {
+            int[] counts = new int[256];
+            foreach (byte b in data)
+            {
+                counts[b]++;
+            }
+
+            double entropy = 0.0;
+            foreach (int count in counts)
+            {
+                if (count == 0) continue;
+                double p = (double)count / data.Length;
+                entropy -= p * Math.Log(p, 2);
+            }
+
+            return entropy;
+        }
+
+        private static void PrintStatistics(PacketStatistics stats)
+        {
+            Console.WriteLine($"AvgIpt: {stats.AvgIpt}");
+            Console.WriteLine($"BytesIn: {stats.BytesIn}");
+            Console.WriteLine($"BytesOut: {stats.BytesOut}");
+            Console.WriteLine($"DestIp: {stats.DestIp}");
+            Console.WriteLine($"DestPort: {stats.DestPort}");
+            Console.WriteLine($"Entropy: {stats.Entropy}");
+            Console.WriteLine($"NumPktsIn: {stats.NumPktsIn}");
+            Console.WriteLine($"NumPktsOut: {stats.NumPktsOut}");
+            Console.WriteLine($"Proto: {stats.Proto}");
+            Console.WriteLine($"SrcIp: {stats.SrcIp}");
+            Console.WriteLine($"SrcPort: {stats.SrcPort}");
+            Console.WriteLine($"TimeEnd: {stats.TimeEnd}");
+            Console.WriteLine($"TimeStart: {stats.TimeStart}");
+            Console.WriteLine($"TotalEntropy: {stats.TotalEntropy}");
+            Console.WriteLine($"Duration: {stats.Duration}");
+        }
 
         public static void PrintType(Packet packet)
         {
+            var stats = new PacketStatistics();
+
             if (packet is EthernetPacket ethernetPacket)
             {
                 Console.WriteLine("The packet is an Ethernet packet.");
@@ -358,31 +346,36 @@ namespace TinyIDS.Services
                 if (ethernetPacket.PayloadPacket is IPPacket ipPacket)
                 {
                     Console.WriteLine("The packet is an IP packet.");
+                    stats.Proto = ipPacket.Protocol.ToString();
 
-                    if (ipPacket is IPv4Packet)
+                    if (ipPacket is IPv4Packet ipv4Packet)
                     {
                         Console.WriteLine("The packet is an IPv4 packet.");
+                        stats.SrcIp = ipv4Packet.SourceAddress.ToString();
+                        stats.DestIp = ipv4Packet.DestinationAddress.ToString();
                     }
-                    else if (ipPacket is IPv6Packet)
+                    else if (ipPacket is IPv6Packet ipv6Packet)
                     {
                         Console.WriteLine("The packet is an IPv6 packet.");
+                        stats.SrcIp = ipv6Packet.SourceAddress.ToString();
+                        stats.DestIp = ipv6Packet.DestinationAddress.ToString();
                     }
 
-                    // Check for TCP or UDP packet within the IP packet
                     if (ipPacket.PayloadPacket is TcpPacket tcpPacket)
                     {
                         Console.WriteLine("The packet is a TCP packet.");
-                        Console.WriteLine($"Source Port: {tcpPacket.SourcePort}, Destination Port: {tcpPacket.DestinationPort}");
+                        stats.SrcPort = tcpPacket.SourcePort;
+                        stats.DestPort = tcpPacket.DestinationPort;
                     }
                     else if (ipPacket.PayloadPacket is UdpPacket udpPacket)
                     {
                         Console.WriteLine("The packet is a UDP packet.");
-                        Console.WriteLine($"Source Port: {udpPacket.SourcePort}, Destination Port: {udpPacket.DestinationPort}");
+                        stats.SrcPort = udpPacket.SourcePort;
+                        stats.DestPort = udpPacket.DestinationPort;
                     }
-                    else
-                    {
-                        Console.WriteLine("The IP packet's payload is not TCP or UDP.");
-                    }
+
+                    // Update statistics
+                    UpdateStatistics(packet, stats);
                 }
                 else if (ethernetPacket.PayloadPacket is ArpPacket)
                 {
@@ -396,31 +389,36 @@ namespace TinyIDS.Services
             else if (packet is IPPacket ipPacketDirect)
             {
                 Console.WriteLine("The packet is an IP packet.");
+                stats.Proto = ipPacketDirect.Protocol.ToString();
 
-                if (ipPacketDirect is IPv4Packet)
+                if (ipPacketDirect is IPv4Packet ipv4Packet)
                 {
                     Console.WriteLine("The packet is an IPv4 packet.");
+                    stats.SrcIp = ipv4Packet.SourceAddress.ToString();
+                    stats.DestIp = ipv4Packet.DestinationAddress.ToString();
                 }
-                else if (ipPacketDirect is IPv6Packet)
+                else if (ipPacketDirect is IPv6Packet ipv6Packet)
                 {
                     Console.WriteLine("The packet is an IPv6 packet.");
+                    stats.SrcIp = ipv6Packet.SourceAddress.ToString();
+                    stats.DestIp = ipv6Packet.DestinationAddress.ToString();
                 }
 
-                // Check for TCP or UDP packet within the IP packet
                 if (ipPacketDirect.PayloadPacket is TcpPacket tcpPacket)
                 {
                     Console.WriteLine("The packet is a TCP packet.");
-                    Console.WriteLine($"Source Port: {tcpPacket.SourcePort}, Destination Port: {tcpPacket.DestinationPort}");
+                    stats.SrcPort = tcpPacket.SourcePort;
+                    stats.DestPort = tcpPacket.DestinationPort;
                 }
                 else if (ipPacketDirect.PayloadPacket is UdpPacket udpPacket)
                 {
                     Console.WriteLine("The packet is a UDP packet.");
-                    Console.WriteLine($"Source Port: {udpPacket.SourcePort}, Destination Port: {udpPacket.DestinationPort}");
+                    stats.SrcPort = udpPacket.SourcePort;
+                    stats.DestPort = udpPacket.DestinationPort;
                 }
-                else
-                {
-                    Console.WriteLine("The IP packet's payload is not TCP or UDP.");
-                }
+
+                // Update statistics
+                UpdateStatistics(packet, stats);
             }
             else if (packet is ArpPacket)
             {
@@ -433,4 +431,6 @@ namespace TinyIDS.Services
         }
 
     }
+
+
 }
