@@ -7,6 +7,8 @@ Docs/*
 # Ignore specific file extensions
 *.vsidx
 *.cache
+*.dll
+*.pdb
 
 # Ignore Debug build output
 Source/TinyIDS/TinyIDS/bin/Debug/

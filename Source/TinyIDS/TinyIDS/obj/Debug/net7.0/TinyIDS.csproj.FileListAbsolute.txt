@@ -55,3 +55,5 @@ E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\runtimes\l
 E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\runtimes\osx-x64\native\libFastTreeNative.dylib
 E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\runtimes\win-x64\native\FastTreeNative.dll
 E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\runtimes\win-x86\native\FastTreeNative.dll
+E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\PacketDotNet.dll
+E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\SharpPcap.dll
