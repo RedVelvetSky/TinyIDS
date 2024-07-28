@@ -1,16 +1,38 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using CsvHelper;
 using PacketDotNet;
-using PacketDotNet.Ieee80211;
 using SharpPcap;
 using SharpPcap.LibPcap;
 using Spectre.Console;
+using TinyIDS.Utils;
 
 namespace TinyIDS.Services
 {
+    public enum CaptureMode
+    {
+        Csv,
+        Cap,
+        Flow
+    }
+
+    public enum Verbosity
+    {
+        None,
+        Basic,
+        Detailed
+    }
+
     public class PacketCaptureService
     {
         private ICaptureDevice _device;
         private static CaptureFileWriterDevice captureFileWriter;
+        private static StreamWriter csvWriter;
+        private static CsvWriter csv;
+        private Verbosity _verbosity;
+        private CaptureMode _captureMode;
 
         public void ListDevices()
         {
@@ -28,14 +50,40 @@ namespace TinyIDS.Services
             }
         }
 
-       public void StartCapture()
-       {
-            // Print SharpPcap version
+
+        public void PrintSharpPcapVersion()
+        {
             var ver = Pcap.SharpPcapVersion;
-            Console.WriteLine("SharpPcap {0}, CreatingCaptureFile", ver);
+            Log($"SharpPcap {ver}", Verbosity.Basic);
+        }
+
+        private LibPcapLiveDeviceList GetDevices()
+        {
+            return LibPcapLiveDeviceList.Instance;
+        }
+
+        private void DisplayAvailableDevices(LibPcapLiveDeviceList devices)
+        {
+            Log("The following devices are available on this machine:", Verbosity.Basic);
+            for (int i = 0; i < devices.Count; i++)
+            {
+                var dev = devices[i];
+                Log($"{i}) {dev.Name} {dev.Description}", Verbosity.Basic);
+            }
+        }
+
+        public void StartCapture(Verbosity verbosity, CaptureMode captureMode)
+        {
+            _verbosity = verbosity;
+            _captureMode = captureMode;
+
+            Log("Starting capture...", Verbosity.Basic);
+
+            // Print SharpPcap version
+            PrintSharpPcapVersion();
 
             // Retrieve the device list
-            var devices = LibPcapLiveDeviceList.Instance;
+            var devices = GetDevices();
 
             // If no devices were found print an error
             if (devices.Count < 1)
@@ -64,6 +112,8 @@ namespace TinyIDS.Services
             i = int.Parse(Console.ReadLine());
             Console.Write("-- Please enter the output file name: ");
             string capFile = Console.ReadLine();
+            Console.Write("-- Please enter the CSV file name: ");
+            string csvFile = Console.ReadLine();
 
             using var device = devices[i];
 
@@ -84,6 +134,12 @@ namespace TinyIDS.Services
             captureFileWriter = new CaptureFileWriterDevice(capFile);
             captureFileWriter.Open(device);
 
+            csvWriter = new StreamWriter(csvFile);
+            csv = new CsvWriter(csvWriter, CultureInfo.InvariantCulture);
+
+            csv.WriteHeader<PacketRecord>();
+            csv.NextRecord();
+
             // Start the capturing process
             device.StartCapture();
 
@@ -92,13 +148,15 @@ namespace TinyIDS.Services
 
             // Stop the capturing process
             device.StopCapture();
+            captureFileWriter.Close();
+            csvWriter.Close();
 
             Console.WriteLine("-- Capture stopped.");
 
             // Print out the device statistics
             Console.WriteLine(device.Statistics.ToString());
 
-        }
+       }
 
         public void ReadCaptureFile(string name)
         {
@@ -219,30 +277,13 @@ namespace TinyIDS.Services
             }
         }
 
-        class PacketStatistics
-        {
-            public double AvgIpt { get; set; }
-            public int BytesIn { get; set; }
-            public int BytesOut { get; set; }
-            public string DestIp { get; set; }
-            public int DestPort { get; set; }
-            public double Entropy { get; set; }
-            public int NumPktsOut { get; set; }
-            public int NumPktsIn { get; set; }
-            public string Proto { get; set; }
-            public string SrcIp { get; set; }
-            public int SrcPort { get; set; }
-            public DateTime TimeEnd { get; set; }
-            public DateTime TimeStart { get; set; }
-            public double TotalEntropy { get; set; }
-            public double Duration => (TimeEnd - TimeStart).TotalSeconds;
-        }
-
         private static void device_OnPacketArrivalCapture(object sender, PacketCapture e)
         {
             // Write the packet to the file
             var rawPacket = e.GetPacket();
             captureFileWriter.Write(rawPacket);
+
+            Console.WriteLine("\n------");
             Console.WriteLine("Packet dumped to file.");
 
             if (rawPacket.LinkLayerType == PacketDotNet.LinkLayers.Ethernet)
@@ -250,187 +291,47 @@ namespace TinyIDS.Services
                 var packet = PacketDotNet.Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
                 var ethernetPacket = packet.Extract<EthernetPacket>();
 
-                PrintType(packet);
-            }
-        }
-
-        private static List<DateTime> packetTimestamps = new List<DateTime>();
-        private static int totalBytes = 0;
-        private static int packetCount = 0;
-
-        private static void UpdateStatistics(Packet packet, PacketStatistics stats)
-        {
-            // Capture the current time
-            DateTime currentTime = DateTime.Now;
-            packetTimestamps.Add(currentTime);
-
-            if (packetTimestamps.Count > 1)
-            {
-                double totalInterPacketTime = 0;
-
-                for (int i = 1; i < packetTimestamps.Count; i++)
+                if (ethernetPacket != null)
                 {
-                    totalInterPacketTime += (packetTimestamps[i] - packetTimestamps[i - 1]).TotalSeconds;
-                }
+                    var ipPacket = ethernetPacket.Extract<IPPacket>();
+                    var tcpPacket = ipPacket?.Extract<TcpPacket>();
+                    var udpPacket = ipPacket?.Extract<UdpPacket>();
 
-                stats.AvgIpt = totalInterPacketTime / (packetTimestamps.Count - 1);
-            }
-
-            if (stats.TimeStart == default)
-            {
-                stats.TimeStart = currentTime;
-            }
-
-            stats.TimeEnd = currentTime;
-            stats.NumPktsIn++;
-            stats.NumPktsOut++;
-            stats.BytesIn += packet.Bytes.Length;
-            stats.BytesOut += packet.Bytes.Length;
-            totalBytes += packet.Bytes.Length;
-            packetCount++;
-
-            // Compute entropy
-            stats.Entropy = ComputeEntropy(packet.Bytes);
-            stats.TotalEntropy = ComputeEntropy(packetTimestamps.SelectMany(d => BitConverter.GetBytes(d.Ticks)).ToArray());
-
-            // Print statistics
-            PrintStatistics(stats);
-        }
-
-        private static double ComputeEntropy(byte[] data)
-        {
-            int[] counts = new int[256];
-            foreach (byte b in data)
-            {
-                counts[b]++;
-            }
-
-            double entropy = 0.0;
-            foreach (int count in counts)
-            {
-                if (count == 0) continue;
-                double p = (double)count / data.Length;
-                entropy -= p * Math.Log(p, 2);
-            }
-
-            return entropy;
-        }
-
-        private static void PrintStatistics(PacketStatistics stats)
-        {
-            Console.WriteLine($"AvgIpt: {stats.AvgIpt}");
-            Console.WriteLine($"BytesIn: {stats.BytesIn}");
-            Console.WriteLine($"BytesOut: {stats.BytesOut}");
-            Console.WriteLine($"DestIp: {stats.DestIp}");
-            Console.WriteLine($"DestPort: {stats.DestPort}");
-            Console.WriteLine($"Entropy: {stats.Entropy}");
-            Console.WriteLine($"NumPktsIn: {stats.NumPktsIn}");
-            Console.WriteLine($"NumPktsOut: {stats.NumPktsOut}");
-            Console.WriteLine($"Proto: {stats.Proto}");
-            Console.WriteLine($"SrcIp: {stats.SrcIp}");
-            Console.WriteLine($"SrcPort: {stats.SrcPort}");
-            Console.WriteLine($"TimeEnd: {stats.TimeEnd}");
-            Console.WriteLine($"TimeStart: {stats.TimeStart}");
-            Console.WriteLine($"TotalEntropy: {stats.TotalEntropy}");
-            Console.WriteLine($"Duration: {stats.Duration}");
-        }
-
-        public static void PrintType(Packet packet)
-        {
-            var stats = new PacketStatistics();
-
-            if (packet is EthernetPacket ethernetPacket)
-            {
-                Console.WriteLine("The packet is an Ethernet packet.");
-
-                if (ethernetPacket.PayloadPacket is IPPacket ipPacket)
-                {
-                    Console.WriteLine("The packet is an IP packet.");
-                    stats.Proto = ipPacket.Protocol.ToString();
-
-                    if (ipPacket is IPv4Packet ipv4Packet)
+                    var record = new PacketRecord
                     {
-                        Console.WriteLine("The packet is an IPv4 packet.");
-                        stats.SrcIp = ipv4Packet.SourceAddress.ToString();
-                        stats.DestIp = ipv4Packet.DestinationAddress.ToString();
-                    }
-                    else if (ipPacket is IPv6Packet ipv6Packet)
-                    {
-                        Console.WriteLine("The packet is an IPv6 packet.");
-                        stats.SrcIp = ipv6Packet.SourceAddress.ToString();
-                        stats.DestIp = ipv6Packet.DestinationAddress.ToString();
-                    }
+                        Timestamp = rawPacket.Timeval.Date.ToString("o"),
+                        SourceMac = ethernetPacket.SourceHardwareAddress.ToString(),
+                        DestinationMac = ethernetPacket.DestinationHardwareAddress.ToString(),
+                        Protocol = ipPacket?.Protocol.ToString(),
+                        SourceIp = ipPacket?.SourceAddress.ToString(),
+                        DestinationIp = ipPacket?.DestinationAddress.ToString(),
+                        SourcePort = tcpPacket?.SourcePort ?? udpPacket?.SourcePort,
+                        DestinationPort = tcpPacket?.DestinationPort ?? udpPacket?.DestinationPort,
+                        Length = rawPacket.Data.Length,
+                        Ttl = ipPacket?.TimeToLive,
+                        SynFlag = tcpPacket != null ? tcpPacket.Synchronize : (bool?)null,
+                        AckFlag = tcpPacket != null ? tcpPacket.Acknowledgment : (bool?)null,
+                        FinFlag = tcpPacket != null ? tcpPacket.Finished : (bool?)null,
+                        RstFlag = tcpPacket != null ? tcpPacket.Reset : (bool?)null,
+                        WindowSize = tcpPacket?.WindowSize,
+                        Payload = BitConverter.ToString(rawPacket.Data)
+                    };
 
-                    if (ipPacket.PayloadPacket is TcpPacket tcpPacket)
-                    {
-                        Console.WriteLine("The packet is a TCP packet.");
-                        stats.SrcPort = tcpPacket.SourcePort;
-                        stats.DestPort = tcpPacket.DestinationPort;
-                    }
-                    else if (ipPacket.PayloadPacket is UdpPacket udpPacket)
-                    {
-                        Console.WriteLine("The packet is a UDP packet.");
-                        stats.SrcPort = udpPacket.SourcePort;
-                        stats.DestPort = udpPacket.DestinationPort;
-                    }
-
-                    // Update statistics
-                    UpdateStatistics(packet, stats);
-                }
-                else if (ethernetPacket.PayloadPacket is ArpPacket)
-                {
-                    Console.WriteLine("The packet is an ARP packet.");
-                }
-                else
-                {
-                    Console.WriteLine("The Ethernet packet's payload is not IP or ARP.");
-                }
-            }
-            else if (packet is IPPacket ipPacketDirect)
-            {
-                Console.WriteLine("The packet is an IP packet.");
-                stats.Proto = ipPacketDirect.Protocol.ToString();
-
-                if (ipPacketDirect is IPv4Packet ipv4Packet)
-                {
-                    Console.WriteLine("The packet is an IPv4 packet.");
-                    stats.SrcIp = ipv4Packet.SourceAddress.ToString();
-                    stats.DestIp = ipv4Packet.DestinationAddress.ToString();
-                }
-                else if (ipPacketDirect is IPv6Packet ipv6Packet)
-                {
-                    Console.WriteLine("The packet is an IPv6 packet.");
-                    stats.SrcIp = ipv6Packet.SourceAddress.ToString();
-                    stats.DestIp = ipv6Packet.DestinationAddress.ToString();
+                    csv.WriteRecord(record);
+                    csv.NextRecord();
+                    csv.Flush();
                 }
 
-                if (ipPacketDirect.PayloadPacket is TcpPacket tcpPacket)
-                {
-                    Console.WriteLine("The packet is a TCP packet.");
-                    stats.SrcPort = tcpPacket.SourcePort;
-                    stats.DestPort = tcpPacket.DestinationPort;
-                }
-                else if (ipPacketDirect.PayloadPacket is UdpPacket udpPacket)
-                {
-                    Console.WriteLine("The packet is a UDP packet.");
-                    stats.SrcPort = udpPacket.SourcePort;
-                    stats.DestPort = udpPacket.DestinationPort;
-                }
-
-                // Update statistics
-                UpdateStatistics(packet, stats);
-            }
-            else if (packet is ArpPacket)
-            {
-                Console.WriteLine("The packet is an ARP packet.");
-            }
-            else
-            {
-                Console.WriteLine("Unknown packet type.");
+                PacketUtils.PrintType(packet);
             }
         }
 
+        private void Log(string message, Verbosity requiredVerbosity)
+        {
+            if (_verbosity >= requiredVerbosity)
+            {
+                Console.WriteLine(message);
+            }
+        }
     }
-
-
 }

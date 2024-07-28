@@ -8,14 +8,24 @@
     ".NETCoreApp,Version=v7.0": {
       "TinyIDS/1.0.0": {
         "dependencies": {
+          "CsvHelper": "33.0.1",
           "Microsoft.ML": "3.0.1",
           "Microsoft.ML.FastTree": "3.0.1",
           "PacketDotNet": "1.4.7",
+          "PcapDotNet": "0.10.2",
           "SharpPcap": "6.3.0",
           "Spectre.Console": "0.49.1"
         },
         "runtime": {
           "TinyIDS.dll": {}
+        }
+      },
+      "CsvHelper/33.0.1": {
+        "runtime": {
+          "lib/net7.0/CsvHelper.dll": {
+            "assemblyVersion": "33.0.0.0",
+            "fileVersion": "33.0.1.24"
+          }
         }
       },
       "Microsoft.ML/3.0.1": {
@@ -179,6 +189,26 @@
           }
         }
       },
+      "PcapDotNet/0.10.2": {
+        "runtime": {
+          "lib/net40/PcapDotNet.Base.dll": {
+            "assemblyVersion": "0.10.0.20588",
+            "fileVersion": "0.10.0.0"
+          },
+          "lib/net40/PcapDotNet.Core.Extensions.dll": {
+            "assemblyVersion": "0.10.0.20638",
+            "fileVersion": "0.10.0.0"
+          },
+          "lib/net40/PcapDotNet.Core.dll": {
+            "assemblyVersion": "0.10.0.20632",
+            "fileVersion": "0.0.0.0"
+          },
+          "lib/net40/PcapDotNet.Packets.dll": {
+            "assemblyVersion": "0.10.0.20603",
+            "fileVersion": "0.10.0.0"
+          }
+        }
+      },
       "SharpPcap/6.3.0": {
         "dependencies": {
           "PacketDotNet": "1.4.7",
@@ -293,6 +323,13 @@
       "serviceable": false,
       "sha512": ""
     },
+    "CsvHelper/33.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fev4lynklAU2A9GVMLtwarkwaanjSYB4wUqO2nOJX5hnzObORzUqVLe+bDYCUyIIRQM4o5Bsq3CcyJR89iMmEQ==",
+      "path": "csvhelper/33.0.1",
+      "hashPath": "csvhelper.33.0.1.nupkg.sha512"
+    },
     "Microsoft.ML/3.0.1": {
       "type": "package",
       "serviceable": true,
@@ -348,6 +385,13 @@
       "sha512": "sha512-xh4MGjkDFhJfFtAr6IEwg3ocPm3TO0/AxbYeCVoh9BaVT0xeWJB1p0nwKQ9olsQiQtSqF8M0UXz97U2VnOYY0w==",
       "path": "packetdotnet/1.4.7",
       "hashPath": "packetdotnet.1.4.7.nupkg.sha512"
+    },
+    "PcapDotNet/0.10.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-IZ7I4BQXkWKB2RJlNQCcq8HRmkeisoynFDz7Kq2hkp6GPumGRDX05Iuzl7eL4OeggAY+kaErqP5U+cfe4mEOhA==",
+      "path": "pcapdotnet/0.10.2",
+      "hashPath": "pcapdotnet.0.10.2.nupkg.sha512"
     },
     "SharpPcap/6.3.0": {
       "type": "package",

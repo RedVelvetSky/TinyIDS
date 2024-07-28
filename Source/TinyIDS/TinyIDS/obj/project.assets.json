@@ -2,6 +2,19 @@
   "version": 3,
   "targets": {
     "net7.0": {
+      "CsvHelper/33.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/net7.0/CsvHelper.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/CsvHelper.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.ML/3.0.1": {
         "type": "package",
         "dependencies": {
@@ -247,6 +260,37 @@
         },
         "runtime": {
           "lib/netstandard2.1/PacketDotNet.dll": {}
+        }
+      },
+      "PcapDotNet/0.10.2": {
+        "type": "package",
+        "compile": {
+          "lib/net40/PcapDotNet.Base.dll": {
+            "related": ".pdb;.XML"
+          },
+          "lib/net40/PcapDotNet.Core.Extensions.dll": {
+            "related": ".pdb;.XML"
+          },
+          "lib/net40/PcapDotNet.Core.dll": {
+            "related": ".Extensions.pdb;.Extensions.XML;.pdb;.xml"
+          },
+          "lib/net40/PcapDotNet.Packets.dll": {
+            "related": ".pdb;.XML"
+          }
+        },
+        "runtime": {
+          "lib/net40/PcapDotNet.Base.dll": {
+            "related": ".pdb;.XML"
+          },
+          "lib/net40/PcapDotNet.Core.Extensions.dll": {
+            "related": ".pdb;.XML"
+          },
+          "lib/net40/PcapDotNet.Core.dll": {
+            "related": ".Extensions.pdb;.Extensions.XML;.pdb;.xml"
+          },
+          "lib/net40/PcapDotNet.Packets.dll": {
+            "related": ".pdb;.XML"
+          }
         }
       },
       "SharpPcap/6.3.0": {
@@ -496,6 +540,34 @@
     }
   },
   "libraries": {
+    "CsvHelper/33.0.1": {
+      "sha512": "fev4lynklAU2A9GVMLtwarkwaanjSYB4wUqO2nOJX5hnzObORzUqVLe+bDYCUyIIRQM4o5Bsq3CcyJR89iMmEQ==",
+      "type": "package",
+      "path": "csvhelper/33.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "csvhelper.33.0.1.nupkg.sha512",
+        "csvhelper.nuspec",
+        "lib/net462/CsvHelper.dll",
+        "lib/net462/CsvHelper.xml",
+        "lib/net47/CsvHelper.dll",
+        "lib/net47/CsvHelper.xml",
+        "lib/net48/CsvHelper.dll",
+        "lib/net48/CsvHelper.xml",
+        "lib/net6.0/CsvHelper.dll",
+        "lib/net6.0/CsvHelper.xml",
+        "lib/net7.0/CsvHelper.dll",
+        "lib/net7.0/CsvHelper.xml",
+        "lib/net8.0/CsvHelper.dll",
+        "lib/net8.0/CsvHelper.xml",
+        "lib/netstandard2.0/CsvHelper.dll",
+        "lib/netstandard2.0/CsvHelper.xml",
+        "lib/netstandard2.1/CsvHelper.dll",
+        "lib/netstandard2.1/CsvHelper.xml"
+      ]
+    },
     "Microsoft.ML/3.0.1": {
       "sha512": "AE4DFwsDNVM5+2RVH3X9mRsqPSs+DrEd7TVA5TyLxPEerQC8wl5YTVQOVMsWCp2AroWGXEIny8xyXdOXfC+9BA==",
       "type": "package",
@@ -672,6 +744,29 @@
         "lib/netstandard2.1/PacketDotNet.dll",
         "packetdotnet.1.4.7.nupkg.sha512",
         "packetdotnet.nuspec"
+      ]
+    },
+    "PcapDotNet/0.10.2": {
+      "sha512": "IZ7I4BQXkWKB2RJlNQCcq8HRmkeisoynFDz7Kq2hkp6GPumGRDX05Iuzl7eL4OeggAY+kaErqP5U+cfe4mEOhA==",
+      "type": "package",
+      "path": "pcapdotnet/0.10.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/PcapDotNet.Base.XML",
+        "lib/net40/PcapDotNet.Base.dll",
+        "lib/net40/PcapDotNet.Base.pdb",
+        "lib/net40/PcapDotNet.Core.Extensions.XML",
+        "lib/net40/PcapDotNet.Core.Extensions.dll",
+        "lib/net40/PcapDotNet.Core.Extensions.pdb",
+        "lib/net40/PcapDotNet.Core.dll",
+        "lib/net40/PcapDotNet.Core.pdb",
+        "lib/net40/PcapDotNet.Core.xml",
+        "lib/net40/PcapDotNet.Packets.XML",
+        "lib/net40/PcapDotNet.Packets.dll",
+        "lib/net40/PcapDotNet.Packets.pdb",
+        "pcapdotnet.0.10.2.nupkg.sha512",
+        "pcapdotnet.nuspec"
       ]
     },
     "SharpPcap/6.3.0": {
@@ -1431,9 +1526,11 @@
   },
   "projectFileDependencyGroups": {
     "net7.0": [
+      "CsvHelper >= 33.0.1",
       "Microsoft.ML >= 3.0.1",
       "Microsoft.ML.FastTree >= 3.0.1",
       "PacketDotNet >= 1.4.7",
+      "PcapDotNet >= 0.10.2",
       "SharpPcap >= 6.3.0",
       "Spectre.Console >= 0.49.1"
     ]
@@ -1477,6 +1574,10 @@
       "net7.0": {
         "targetAlias": "net7.0",
         "dependencies": {
+          "CsvHelper": {
+            "target": "Package",
+            "version": "[33.0.1, )"
+          },
           "Microsoft.ML": {
             "target": "Package",
             "version": "[3.0.1, )"
@@ -1488,6 +1589,10 @@
           "PacketDotNet": {
             "target": "Package",
             "version": "[1.4.7, )"
+          },
+          "PcapDotNet": {
+            "target": "Package",
+            "version": "[0.10.2, )"
           },
           "SharpPcap": {
             "target": "Package",
@@ -1517,5 +1622,17 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.202\\RuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'PcapDotNet 0.10.2' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net7.0'. This package may not be fully compatible with your project.",
+      "libraryId": "PcapDotNet",
+      "targetGraphs": [
+        "net7.0"
+      ]
+    }
+  ]
 }

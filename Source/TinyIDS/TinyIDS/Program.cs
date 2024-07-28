@@ -11,33 +11,31 @@ namespace TinyIDS
         {
             AnsiConsole.Markup("[bold green]Intrusion Detection System Starting...[/]\n");
 
-            // Create an instance of the ModelTrainingService
-            //var modelTrainingService = new ModelTrainingService();
-
-            // Train and save the model
-            //modelTrainingService.TrainAndSaveModel();
-
-            //Console.WriteLine("Model training completed. Press any key to exit...");
-            //Console.ReadKey();
-
-            //var modelInferenceService = new ModelInferenceService();
-
-            // Example input data for prediction
-            //var inputData = new PacketData {};
-
-            //var prediction = modelInferenceService.Predict(inputData);
-
-            //AnsiConsole.MarkupLine($"[bold yellow]Predicted Label: {prediction.PredictedLabel}[/]");
-            //AnsiConsole.MarkupLine($"[bold yellow]Scores: {string.Join(", ", prediction.Score)}[/]");
-
             var packetCaptureService = new PacketCaptureService();
 
-            //packetCaptureService.ListDevices();
-
-            packetCaptureService.StartCapture();
+            packetCaptureService.StartCapture(Verbosity.Detailed, CaptureMode.Csv);
 
             //packetCaptureService.ReadCaptureFile("E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\bin\\Debug\\net7.0\\test");
 
         }
     }
 }
+
+// Create an instance of the ModelTrainingService
+//var modelTrainingService = new ModelTrainingService();
+
+// Train and save the model
+//modelTrainingService.TrainAndSaveModel();
+
+//Console.WriteLine("Model training completed. Press any key to exit...");
+//Console.ReadKey();
+
+//var modelInferenceService = new ModelInferenceService();
+
+// Example input data for prediction
+//var inputData = new PacketData {};
+
+//var prediction = modelInferenceService.Predict(inputData);
+
+//AnsiConsole.MarkupLine($"[bold yellow]Predicted Label: {prediction.PredictedLabel}[/]");
+//AnsiConsole.MarkupLine($"[bold yellow]Scores: {string.Join(", ", prediction.Score)}[/]");

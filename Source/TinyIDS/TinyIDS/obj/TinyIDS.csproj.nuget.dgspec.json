@@ -40,6 +40,10 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "dependencies": {
+            "CsvHelper": {
+              "target": "Package",
+              "version": "[33.0.1, )"
+            },
             "Microsoft.ML": {
               "target": "Package",
               "version": "[3.0.1, )"
@@ -51,6 +55,10 @@
             "PacketDotNet": {
               "target": "Package",
               "version": "[1.4.7, )"
+            },
+            "PcapDotNet": {
+              "target": "Package",
+              "version": "[0.10.2, )"
             },
             "SharpPcap": {
               "target": "Package",
