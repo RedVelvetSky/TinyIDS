@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using CsvHelper;
 using PacketDotNet;
+using PcapDotNet.Packets;
 using SharpPcap;
 using SharpPcap.LibPcap;
 using Spectre.Console;
@@ -31,7 +32,7 @@ namespace TinyIDS.Services
         private static CaptureFileWriterDevice captureFileWriter;
         private static StreamWriter csvWriter;
         private static CsvWriter csv;
-        private Verbosity _verbosity;
+        private static Verbosity _verbosity;
         private CaptureMode _captureMode;
 
         public void ListDevices()
@@ -40,14 +41,20 @@ namespace TinyIDS.Services
 
             if (devices.Count == 0)
             {
-                Console.WriteLine("No interfaces found! Make sure WinPcap or Npcap is installed.");
+                AnsiConsole.MarkupLine("[bold red]No interfaces found! Make sure WinPcap or Npcap is installed.[/]");
                 return;
             }
 
+            var table = new Table();
+            table.AddColumn("Name");
+            table.AddColumn("Description");
+
             foreach (var device in devices)
             {
-                Console.WriteLine($"{device.Name} - {device.Description}");
+                table.AddRow(device.Name, device.Description);
             }
+
+            AnsiConsole.Write(table);
         }
 
 
@@ -64,12 +71,32 @@ namespace TinyIDS.Services
 
         private void DisplayAvailableDevices(LibPcapLiveDeviceList devices)
         {
-            Log("The following devices are available on this machine:", Verbosity.Basic);
+            var table = new Table();
+            table.AddColumn(new TableColumn("[bold]Index[/]").Centered());
+            table.AddColumn(new TableColumn("[bold]Name[/]").Centered());
+            table.AddColumn(new TableColumn("[bold]Description[/]").Centered());
+
             for (int i = 0; i < devices.Count; i++)
             {
                 var dev = devices[i];
-                Log($"{i}) {dev.Name} {dev.Description}", Verbosity.Basic);
+                table.AddRow(i.ToString(), dev.Name, dev.Description);
             }
+
+            AnsiConsole.Write(table);
+        }
+
+        private int GetDeviceIndexFromUser()
+        {
+            return AnsiConsole.Prompt(
+                new TextPrompt<int>("[bold]Please choose a device to capture on[/]:")
+                    .PromptStyle("green")
+                    .Validate(index =>
+                        index >= 0 ? ValidationResult.Success() : ValidationResult.Error("[red]Invalid device index[/]")));
+        }
+
+        private string GetOutputFileNameFromUser(string fileType)
+        {
+            return AnsiConsole.Ask<string>($"[bold]Please enter the {fileType} file name[/]:");
         }
 
         public void StartCapture(Verbosity verbosity, CaptureMode captureMode)
@@ -88,144 +115,108 @@ namespace TinyIDS.Services
             // If no devices were found print an error
             if (devices.Count < 1)
             {
-                Console.WriteLine("No devices were found on this machine");
+                AnsiConsole.MarkupLine("[bold red]No devices were found on this machine[/]");
                 return;
             }
 
-            Console.WriteLine();
-            Console.WriteLine("The following devices are available on this machine:");
-            Console.WriteLine("----------------------------------------------------");
-            Console.WriteLine();
+            DisplayAvailableDevices(devices);
 
-            int i = 0;
+            int deviceIndex = GetDeviceIndexFromUser();
+            string capFile = null;
+            string csvFile = null;
 
-            // Print out the devices
-            foreach (var dev in devices)
+            if (_captureMode == CaptureMode.Cap)
             {
-                /* Description */
-                Console.WriteLine("{0}) {1} {2}", i, dev.Name, dev.Description);
-                i++;
+                capFile = GetOutputFileNameFromUser("capture");
             }
 
-            Console.WriteLine();
-            Console.Write("-- Please choose a device to capture on: ");
-            i = int.Parse(Console.ReadLine());
-            Console.Write("-- Please enter the output file name: ");
-            string capFile = Console.ReadLine();
-            Console.Write("-- Please enter the CSV file name: ");
-            string csvFile = Console.ReadLine();
+            if (_captureMode == CaptureMode.Csv)
+            {
+                csvFile = GetOutputFileNameFromUser("CSV");
+            }
 
-            using var device = devices[i];
+            CapturePackets(devices[deviceIndex], capFile, csvFile);
+        }
 
-            // Register our handler function to the 'packet arrival' event
-            device.OnPacketArrival +=
-                new PacketArrivalEventHandler(device_OnPacketArrivalCapture);
+        private void CapturePackets(ICaptureDevice device, string capFile, string csvFile)
+        {
+            device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrivalCapture);
+            device.Open(DeviceModes.Promiscuous | DeviceModes.DataTransferUdp | DeviceModes.NoCaptureLocal, read_timeout: 1000);
 
-            // Open the device for capturing
-            int readTimeoutMilliseconds = 1000;
-            device.Open(mode: DeviceModes.Promiscuous | DeviceModes.DataTransferUdp | DeviceModes.NoCaptureLocal, read_timeout: readTimeoutMilliseconds);
+            Log($"Listening on [bold yellow]{device.Description}[/], writing to [bold green]{capFile}[/], hit 'Enter' to stop...", Verbosity.Basic);
 
-            Console.WriteLine();
-            Console.WriteLine("-- Listening on {0} {1}, writing to {2}, hit 'Enter' to stop...",
-                              device.Name, device.Description,
-                              capFile);
+            if (_captureMode == CaptureMode.Cap && capFile != null)
+            {
+                captureFileWriter = new CaptureFileWriterDevice(capFile);
+                captureFileWriter.Open(device);
+            }
 
-            // open the output file
-            captureFileWriter = new CaptureFileWriterDevice(capFile);
-            captureFileWriter.Open(device);
+            if (_captureMode == CaptureMode.Csv && csvFile != null)
+            {
+                csvWriter = new StreamWriter(csvFile);
+                csv = new CsvWriter(csvWriter, CultureInfo.InvariantCulture);
+                csv.WriteHeader<PacketRecord>();
+                csv.NextRecord();
+            }
 
-            csvWriter = new StreamWriter(csvFile);
-            csv = new CsvWriter(csvWriter, CultureInfo.InvariantCulture);
-
-            csv.WriteHeader<PacketRecord>();
-            csv.NextRecord();
-
-            // Start the capturing process
             device.StartCapture();
+            if (_verbosity >= Verbosity.Detailed)
+            {
+                Console.WriteLine();
+                AnsiConsole.Write(
+                 new Rule("[bold green]Detailed information about packets:[/]")
+                     .RuleStyle("green")
+                     .Centered());
+                Console.WriteLine();
 
-            // Wait for 'Enter' from the user.
+            }
             Console.ReadLine();
-
-            // Stop the capturing process
             device.StopCapture();
-            captureFileWriter.Close();
-            csvWriter.Close();
 
-            Console.WriteLine("-- Capture stopped.");
+            if (_captureMode == CaptureMode.Cap && captureFileWriter != null)
+            {
+                captureFileWriter.Close();
+            }
 
-            // Print out the device statistics
-            Console.WriteLine(device.Statistics.ToString());
+            if (_captureMode == CaptureMode.Csv && csvWriter != null)
+            {
+                csvWriter.Close();
+            }
 
-       }
+            Log("[bold green]Capture stopped.[/]", Verbosity.Basic);
+            LogDeviceStatistics(device.Statistics.ToString());
+        }
 
         public void ReadCaptureFile(string name)
         {
 
-            var ver = Pcap.SharpPcapVersion;
-
-            /* Print SharpPcap version */
-            Console.WriteLine("SharpPcap {0}, ReadingCaptureFile", ver);
-            Console.WriteLine();
-
-            Console.WriteLine();
-
-            // read the file from stdin or from the command line arguments
-            string capFile;
-            //if (args.Length == 0)
-            //{
-            //    Console.Write("-- Please enter an input capture file name: ");
-            //    capFile = Console.ReadLine();
-            //}
-            //else
-            //{
-            //    // use the first argument as the filename
-            //    capFile = name;
-            //}
-
-            capFile = name;
-
-            Console.WriteLine("opening '{0}'", capFile);
-
-            ICaptureDevice device;
+            PrintSharpPcapVersion();
+            string capFile = name;
+            AnsiConsole.MarkupLine($"[bold]Opening '{capFile}'[/]");
 
             try
             {
-                // Get an offline device
-                device = new CaptureFileReaderDevice(capFile);
-
-                // Open the device
+                var device = new CaptureFileReaderDevice(capFile);
                 device.Open();
+                device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrivalRead);
+                AnsiConsole.MarkupLine($"-- Capturing from '[bold yellow]{capFile}[/]', hit 'Ctrl-C' to exit...");
+
+
+                var startTime = DateTime.Now;
+                device.Capture();
+                device.Close();
+                var endTime = DateTime.Now;
+                AnsiConsole.MarkupLine("[bold]-- End of file reached.[/]");
+                var duration = endTime - startTime;
+                AnsiConsole.MarkupLine($"Read [bold]{packetIndex}[/] packets in [bold]{duration.TotalSeconds}[/]s");
+
+                AnsiConsole.Markup("[bold]Hit 'Enter' to exit...[/]");
+                Console.ReadLine();
             }
             catch (Exception e)
             {
-                Console.WriteLine("Caught exception when opening file" + e.ToString());
-                return;
+                AnsiConsole.MarkupLine("[bold red]Caught exception when opening file: [/]" + e);
             }
-
-            // Register our handler function to the 'packet arrival' event
-            device.OnPacketArrival +=
-                new PacketArrivalEventHandler(device_OnPacketArrivalRead);
-
-            Console.WriteLine();
-            Console.WriteLine
-                ("-- Capturing from '{0}', hit 'Ctrl-C' to exit...", capFile);
-
-            var startTime = DateTime.Now;
-
-            // Start capture 'INFINTE' number of packets
-            // This method will return when EOF reached.
-            device.Capture();
-
-            // Close the pcap device
-            device.Close();
-            var endTime = DateTime.Now;
-            Console.WriteLine("-- End of file reached.");
-
-            var duration = endTime - startTime;
-            Console.WriteLine("Read {0} packets in {1}s", packetIndex, duration.TotalSeconds);
-
-            Console.Write("Hit 'Enter' to exit...");
-            Console.ReadLine();
         }
 
         private static int packetIndex = 0;
@@ -268,23 +259,18 @@ namespace TinyIDS.Services
             var ethernetPacket = packet.Extract<EthernetPacket>();
             if (ethernetPacket != null)
             {
-                Console.WriteLine("{0} At: {1}:{2}: MAC:{3} -> MAC:{4}",
-                                  packetIndex,
-                                  e.Header.Timeval.Date.ToString(),
-                                  e.Header.Timeval.Date.Millisecond,
-                                  ethernetPacket.SourceHardwareAddress,
-                                  ethernetPacket.DestinationHardwareAddress);
+                AnsiConsole.MarkupLine($"{packetIndex} At: [bold]{e.Header.Timeval.Date.ToString()}[/]:{e.Header.Timeval.Date.Millisecond}: MAC:{ethernetPacket.SourceHardwareAddress} -> MAC:{ethernetPacket.DestinationHardwareAddress}");
             }
         }
 
         private static void device_OnPacketArrivalCapture(object sender, PacketCapture e)
         {
-            // Write the packet to the file
             var rawPacket = e.GetPacket();
-            captureFileWriter.Write(rawPacket);
 
-            Console.WriteLine("\n------");
-            Console.WriteLine("Packet dumped to file.");
+            if (captureFileWriter != null)
+            {
+                captureFileWriter.Write(rawPacket);
+            }
 
             if (rawPacket.LinkLayerType == PacketDotNet.LinkLayers.Ethernet)
             {
@@ -317,12 +303,18 @@ namespace TinyIDS.Services
                         Payload = BitConverter.ToString(rawPacket.Data)
                     };
 
-                    csv.WriteRecord(record);
-                    csv.NextRecord();
-                    csv.Flush();
+                    if (csv != null)
+                    {
+                        csv.WriteRecord(record);
+                        csv.NextRecord();
+                        csv.Flush();
+                    }
                 }
 
-                PacketUtils.PrintType(packet);
+                if (_verbosity >= Verbosity.Detailed)
+                {
+                    PacketUtils.PrintType(packet);
+                }
             }
         }
 
@@ -330,8 +322,19 @@ namespace TinyIDS.Services
         {
             if (_verbosity >= requiredVerbosity)
             {
-                Console.WriteLine(message);
+                AnsiConsole.MarkupLine(message);
             }
+        }
+
+        private void LogDeviceStatistics(string statistics)
+        {
+            //AnsiConsole.Write(new Panel(statistics)
+            //    .Header("Device Statistics")
+            //    .Border(BoxBorder.Rounded)
+            //    .BorderColor(Color.Grey)
+            //    .Expand());
+
+            Console.WriteLine(statistics);
         }
     }
 }

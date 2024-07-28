@@ -1,5 +1,6 @@
 ﻿using PacketDotNet;
 using PcapDotNet.Core;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,35 +61,35 @@ namespace TinyIDS.Utils
 
             if (packet is EthernetPacket ethernetPacket)
             {
-                Console.WriteLine("The packet is an Ethernet packet.");
+                AnsiConsole.MarkupLine("[bold green]The packet is an Ethernet packet.[/]");
 
                 if (ethernetPacket.PayloadPacket is IPPacket ipPacket)
                 {
-                    Console.WriteLine("The packet is an IP packet.");
+                    AnsiConsole.MarkupLine("[bold yellow]The packet is an IP packet.[/]");
                     stats.Proto = ipPacket.Protocol.ToString();
 
                     if (ipPacket is IPv4Packet ipv4Packet)
                     {
-                        Console.WriteLine("The packet is an IPv4 packet.");
+                        AnsiConsole.MarkupLine("[bold]The packet is an IPv4 packet.[/]");
                         stats.SrcIp = ipv4Packet.SourceAddress.ToString();
                         stats.DestIp = ipv4Packet.DestinationAddress.ToString();
                     }
                     else if (ipPacket is IPv6Packet ipv6Packet)
                     {
-                        Console.WriteLine("The packet is an IPv6 packet.");
+                        AnsiConsole.MarkupLine("[bold]The packet is an IPv6 packet.[/]");
                         stats.SrcIp = ipv6Packet.SourceAddress.ToString();
                         stats.DestIp = ipv6Packet.DestinationAddress.ToString();
                     }
 
                     if (ipPacket.PayloadPacket is TcpPacket tcpPacket)
                     {
-                        Console.WriteLine("The packet is a TCP packet.");
+                        AnsiConsole.MarkupLine("[bold]The packet is a TCP packet.[/]");
                         stats.SrcPort = tcpPacket.SourcePort;
                         stats.DestPort = tcpPacket.DestinationPort;
                     }
                     else if (ipPacket.PayloadPacket is UdpPacket udpPacket)
                     {
-                        Console.WriteLine("The packet is a UDP packet.");
+                        AnsiConsole.MarkupLine("[bold]The packet is a UDP packet.[/]");
                         stats.SrcPort = udpPacket.SourcePort;
                         stats.DestPort = udpPacket.DestinationPort;
                     }
@@ -98,40 +99,40 @@ namespace TinyIDS.Utils
                 }
                 else if (ethernetPacket.PayloadPacket is ArpPacket)
                 {
-                    Console.WriteLine("The packet is an ARP packet.");
+                    AnsiConsole.MarkupLine("[bold yellow]The packet is an ARP packet.[/]");
                 }
                 else
                 {
-                    Console.WriteLine("The Ethernet packet's payload is not IP or ARP.");
+                    AnsiConsole.MarkupLine("[bold yellow]The Ethernet packet's payload is not IP or ARP.[/]");
                 }
             }
             else if (packet is IPPacket ipPacketDirect)
             {
-                Console.WriteLine("The packet is an IP packet.");
+                AnsiConsole.MarkupLine("[bold]The packet is an IP packet.[/]");
                 stats.Proto = ipPacketDirect.Protocol.ToString();
 
                 if (ipPacketDirect is IPv4Packet ipv4Packet)
                 {
-                    Console.WriteLine("The packet is an IPv4 packet.");
+                    AnsiConsole.MarkupLine("[bold]The packet is an IPv4 packet.[/]");
                     stats.SrcIp = ipv4Packet.SourceAddress.ToString();
                     stats.DestIp = ipv4Packet.DestinationAddress.ToString();
                 }
                 else if (ipPacketDirect is IPv6Packet ipv6Packet)
                 {
-                    Console.WriteLine("The packet is an IPv6 packet.");
+                    AnsiConsole.MarkupLine("[bold]The packet is an IPv6 packet.[/]");
                     stats.SrcIp = ipv6Packet.SourceAddress.ToString();
                     stats.DestIp = ipv6Packet.DestinationAddress.ToString();
                 }
 
                 if (ipPacketDirect.PayloadPacket is TcpPacket tcpPacket)
                 {
-                    Console.WriteLine("The packet is a TCP packet.");
+                    AnsiConsole.MarkupLine("[bold]The packet is a TCP packet.[/]");
                     stats.SrcPort = tcpPacket.SourcePort;
                     stats.DestPort = tcpPacket.DestinationPort;
                 }
                 else if (ipPacketDirect.PayloadPacket is UdpPacket udpPacket)
                 {
-                    Console.WriteLine("The packet is a UDP packet.");
+                    AnsiConsole.MarkupLine("[bold]The packet is a UDP packet.[/]");
                     stats.SrcPort = udpPacket.SourcePort;
                     stats.DestPort = udpPacket.DestinationPort;
                 }
@@ -147,6 +148,8 @@ namespace TinyIDS.Utils
             {
                 Console.WriteLine("Unknown packet type.");
             }
+
+            AnsiConsole.Write(new Rule("[bold grey]END OF PACKET[/]").RuleStyle("grey").Centered());
         }
 
         private static double ComputeEntropy(byte[] data)
@@ -170,21 +173,27 @@ namespace TinyIDS.Utils
 
         private static void PrintStatistics(PacketStatistics stats)
         {
-            Console.WriteLine($"AvgIpt: {stats.AvgIpt}");
-            Console.WriteLine($"BytesIn: {stats.BytesIn}");
-            Console.WriteLine($"BytesOut: {stats.BytesOut}");
-            Console.WriteLine($"DestIp: {stats.DestIp}");
-            Console.WriteLine($"DestPort: {stats.DestPort}");
-            Console.WriteLine($"Entropy: {stats.Entropy}");
-            Console.WriteLine($"NumPktsIn: {stats.NumPktsIn}");
-            Console.WriteLine($"NumPktsOut: {stats.NumPktsOut}");
-            Console.WriteLine($"Proto: {stats.Proto}");
-            Console.WriteLine($"SrcIp: {stats.SrcIp}");
-            Console.WriteLine($"SrcPort: {stats.SrcPort}");
-            Console.WriteLine($"TimeEnd: {stats.TimeEnd}");
-            Console.WriteLine($"TimeStart: {stats.TimeStart}");
-            Console.WriteLine($"TotalEntropy: {stats.TotalEntropy}");
-            Console.WriteLine($"Duration: {stats.Duration}");
+            var table = new Table();
+            table.AddColumn("[bold]Statistic[/]");
+            table.AddColumn("[bold]Value[/]");
+
+            table.AddRow("AvgIpt", stats.AvgIpt.ToString());
+            table.AddRow("BytesIn", stats.BytesIn.ToString());
+            table.AddRow("BytesOut", stats.BytesOut.ToString());
+            table.AddRow("DestIp", stats.DestIp);
+            table.AddRow("DestPort", stats.DestPort.ToString());
+            table.AddRow("Entropy", stats.Entropy.ToString());
+            table.AddRow("NumPktsIn", stats.NumPktsIn.ToString());
+            table.AddRow("NumPktsOut", stats.NumPktsOut.ToString());
+            table.AddRow("Proto", stats.Proto);
+            table.AddRow("SrcIp", stats.SrcIp);
+            table.AddRow("SrcPort", stats.SrcPort.ToString());
+            table.AddRow("TimeEnd", stats.TimeEnd.ToString());
+            table.AddRow("TimeStart", stats.TimeStart.ToString());
+            table.AddRow("TotalEntropy", stats.TotalEntropy.ToString());
+            table.AddRow("Duration", stats.Duration.ToString());
+
+            AnsiConsole.Write(table);
         }
     }
 }
