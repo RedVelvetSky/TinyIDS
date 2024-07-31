@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TinyIDS.Utils
+namespace TinyIDS.Models
 {
     public class PacketRecord
     {
@@ -23,6 +23,12 @@ namespace TinyIDS.Utils
         public bool? FinFlag { get; set; } // FIN flag for TCP packets
         public bool? RstFlag { get; set; } // RST flag for TCP packets
         public int? WindowSize { get; set; } // TCP window size
-        public string Payload { get; set; } // Packet payload
+        public int PayloadSize { get; set; }
+        public double Entropy { get; set; }
+        
+        // New features
+        public int PacketsPerFlow { get; set; } // Number of packets in the flow
+        public double InterArrivalTime { get; set; } // Time difference between packets in the same flow, in milliseconds
+        public double FlowDuration { get; set; } // Total duration of the flow, in milliseconds
     }
 }

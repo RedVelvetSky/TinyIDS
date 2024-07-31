@@ -11,9 +11,9 @@ namespace TinyIDS
         {
             AnsiConsole.Markup("[bold green]Intrusion Detection System Starting...[/]\n");
 
-            var packetCaptureService = new PacketCaptureService();
+            var packetCaptureService = new PacketCaptureService(Utils.Verbosity.Basic);
 
-            packetCaptureService.StartCapture(Verbosity.Detailed, CaptureMode.Csv);
+            packetCaptureService.StartCapture(CaptureMode.Csv);
 
             //packetCaptureService.ReadCaptureFile("E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\bin\\Debug\\net7.0\\test");
 

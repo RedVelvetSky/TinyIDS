@@ -8,6 +8,7 @@ using PcapDotNet.Packets;
 using SharpPcap;
 using SharpPcap.LibPcap;
 using Spectre.Console;
+using TinyIDS.Models;
 using TinyIDS.Utils;
 
 namespace TinyIDS.Services
@@ -19,13 +20,6 @@ namespace TinyIDS.Services
         Flow
     }
 
-    public enum Verbosity
-    {
-        None,
-        Basic,
-        Detailed
-    }
-
     public class PacketCaptureService
     {
         private ICaptureDevice _device;
@@ -34,6 +28,14 @@ namespace TinyIDS.Services
         private static CsvWriter csv;
         private static Verbosity _verbosity;
         private CaptureMode _captureMode;
+        private static PacketProcessor _packetProcessor;
+        private readonly Logger _logger;
+
+        public PacketCaptureService(Verbosity verbosity)
+        {
+            _logger = new Logger(verbosity);
+            _packetProcessor = new PacketProcessor(_logger);
+        }
 
         public void ListDevices()
         {
@@ -99,11 +101,10 @@ namespace TinyIDS.Services
             return AnsiConsole.Ask<string>($"[bold]Please enter the {fileType} file name[/]:");
         }
 
-        public void StartCapture(Verbosity verbosity, CaptureMode captureMode)
+        public void StartCapture(CaptureMode captureMode)
         {
-            _verbosity = verbosity;
             _captureMode = captureMode;
-
+           
             Log("Starting capture...", Verbosity.Basic);
 
             // Print SharpPcap version
@@ -267,6 +268,8 @@ namespace TinyIDS.Services
         {
             var rawPacket = e.GetPacket();
 
+            _packetProcessor.ProcessPacket(rawPacket);
+
             if (captureFileWriter != null)
             {
                 captureFileWriter.Write(rawPacket);
@@ -283,25 +286,7 @@ namespace TinyIDS.Services
                     var tcpPacket = ipPacket?.Extract<TcpPacket>();
                     var udpPacket = ipPacket?.Extract<UdpPacket>();
 
-                    var record = new PacketRecord
-                    {
-                        Timestamp = rawPacket.Timeval.Date.ToString("o"),
-                        SourceMac = ethernetPacket.SourceHardwareAddress.ToString(),
-                        DestinationMac = ethernetPacket.DestinationHardwareAddress.ToString(),
-                        Protocol = ipPacket?.Protocol.ToString(),
-                        SourceIp = ipPacket?.SourceAddress.ToString(),
-                        DestinationIp = ipPacket?.DestinationAddress.ToString(),
-                        SourcePort = tcpPacket?.SourcePort ?? udpPacket?.SourcePort,
-                        DestinationPort = tcpPacket?.DestinationPort ?? udpPacket?.DestinationPort,
-                        Length = rawPacket.Data.Length,
-                        Ttl = ipPacket?.TimeToLive,
-                        SynFlag = tcpPacket != null ? tcpPacket.Synchronize : (bool?)null,
-                        AckFlag = tcpPacket != null ? tcpPacket.Acknowledgment : (bool?)null,
-                        FinFlag = tcpPacket != null ? tcpPacket.Finished : (bool?)null,
-                        RstFlag = tcpPacket != null ? tcpPacket.Reset : (bool?)null,
-                        WindowSize = tcpPacket?.WindowSize,
-                        Payload = BitConverter.ToString(rawPacket.Data)
-                    };
+                    var record = FeatureExtractor.ExtractFeatures(rawPacket);
 
                     if (csv != null)
                     {
@@ -320,21 +305,12 @@ namespace TinyIDS.Services
 
         private void Log(string message, Verbosity requiredVerbosity)
         {
-            if (_verbosity >= requiredVerbosity)
-            {
-                AnsiConsole.MarkupLine(message);
-            }
+            _logger.Log(message, requiredVerbosity);
         }
 
         private void LogDeviceStatistics(string statistics)
         {
-            //AnsiConsole.Write(new Panel(statistics)
-            //    .Header("Device Statistics")
-            //    .Border(BoxBorder.Rounded)
-            //    .BorderColor(Color.Grey)
-            //    .Expand());
-
-            Console.WriteLine(statistics);
+            _logger.LogDeviceStatistics(statistics);
         }
     }
 }

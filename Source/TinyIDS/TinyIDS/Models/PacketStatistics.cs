@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TinyIDS.Utils
+namespace TinyIDS.Models
 {
     public class PacketStatistics
     {
