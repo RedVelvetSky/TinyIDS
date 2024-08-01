@@ -3,6 +3,7 @@ import random
 import csv
 import time
 from datetime import datetime, timedelta
+import numpy as np
 
 # Flow information storage
 flow_table = {}
@@ -92,6 +93,7 @@ def record_packet(packet, attack_type):
     ip_layer = packet.getlayer(IP)
     tcp_layer = packet.getlayer(TCP)
     udp_layer = packet.getlayer(UDP)
+    icmp_layer = packet.getlayer(ICMP)
     
     # Generate entropy based on payload content
     payload = bytes(packet[TCP].payload if tcp_layer else packet[UDP].payload if udp_layer else b'')
@@ -103,34 +105,44 @@ def record_packet(packet, attack_type):
     # Formatting timestamp manually
     timestamp = datetime.utcfromtimestamp(packet.time)
 
-    flow_key = f"{ip_layer.src}:{tcp_layer.sport if tcp_layer else udp_layer.sport}->{ip_layer.dst}:{tcp_layer.dport if tcp_layer else udp_layer.dport}"
+    # flow_key = f"{ip_layer.src}:{tcp_layer.sport if tcp_layer else udp_layer.sport}->{ip_layer.dst}:{tcp_layer.dport if tcp_layer else udp_layer.dport}"
 
     # Debugging: print the flow key to ensure it is consistent
-    print(f"Flow Key: {flow_key}, Timestamp: {timestamp}")
+    # print(f"Flow Key: {flow_key}, Timestamp: {timestamp}")
 
-    flow_info = update_flow_info(flow_key, timestamp, payload_size)
+    # flow_info = update_flow_info(flow_key, timestamp, payload_size)
+
+    # Determine the protocol
+    if tcp_layer:
+        protocol = "Tcp"
+    elif udp_layer:
+        protocol = "Udp"
+    elif icmp_layer:
+        protocol = "Icmp"
+    else:
+        protocol = "Unknown"
 
     record = {
-        "Timestamp": timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-        "SourceMac": random_mac(),  # Realistic random MAC
-        "DestinationMac": random_mac(),  # Realistic random MAC
-        "Protocol": "Tcp" if tcp_layer else "Udp",
-        "SourceIp": ip_layer.src if ip_layer else None,
-        "DestinationIp": ip_layer.dst if ip_layer else None,
-        "SourcePort": tcp_layer.sport if tcp_layer else (udp_layer.sport if udp_layer else None),
-        "DestinationPort": tcp_layer.dport if tcp_layer else (udp_layer.dport if udp_layer else None),
+        # "Timestamp": timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+        # "SourceMac": random_mac(),  # Realistic random MAC
+        # "DestinationMac": random_mac(),  # Realistic random MAC
+        "Protocol": protocol,
+        # "SourceIp": ip_layer.src if ip_layer else np.nan,
+        # "DestinationIp": ip_layer.dst if ip_layer else np.nan,
+        # "SourcePort": tcp_layer.sport if tcp_layer else (udp_layer.sport if udp_layer else np.nan),
+        "DestinationPort": tcp_layer.dport if tcp_layer else (udp_layer.dport if udp_layer else np.nan),
         "Length": len(packet),
-        "Ttl": ip_layer.ttl if ip_layer else None,
+        "Ttl": ip_layer.ttl if ip_layer else np.nan,
         "SynFlag": tcp_layer.flags.S if tcp_layer and tcp_layer.flags.S else False,
         "AckFlag": tcp_layer.flags.A if tcp_layer and tcp_layer.flags.A else False,
         "FinFlag": tcp_layer.flags.F if tcp_layer and tcp_layer.flags.F else False,
         "RstFlag": tcp_layer.flags.R if tcp_layer and tcp_layer.flags.R else False,
         "WindowSize": tcp_layer.window if tcp_layer else random_window(),
         "PayloadSize": payload_size,
-        "Entropy": entropy,
-        "PacketsPerFlow": flow_info.packet_count,
-        "InterArrivalTime": flow_info.last_inter_arrival_time.total_seconds() * 1000,  # in milliseconds
-        "FlowDuration": flow_info.flow_duration
+        "Entropy": entropy
+        # "PacketsPerFlow": flow_info.packet_count,
+        # "InterArrivalTime": flow_info.last_inter_arrival_time.total_seconds() * 1000,  # in milliseconds
+        # "FlowDuration": flow_info.flow_duration
     }
 
     packet_records.append(record)
@@ -150,73 +162,168 @@ def calculate_entropy(data):
     return entropy
 
 # SYN Flood Attack (keeping the source port and flow key consistent)
-def syn_flood(target_ip, packet_count=100):
-    base_src_port = random.randint(1024, 65535)  # Fixed source port for consistency
+# def syn_flood(target_ip, packet_count=100):
+#     base_src_port = random.randint(1024, 65535)  # Fixed source port for consistency
+#     for _ in range(packet_count):
+#         ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
+#         tcp = TCP(sport=base_src_port, dport=random.choice(exploited_ports), flags="S", window=random_window())
+#         payload = random_payload()
+#         packet = ip/tcp/payload
+#         record_packet(packet, "SYN Flood")
+
+def syn_flood(target_ip, packet_count=10000):
     for _ in range(packet_count):
         ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
-        tcp = TCP(sport=base_src_port, dport=random.choice(exploited_ports), flags="S", window=random_window())
-        payload = random_payload()
-        packet = ip/tcp/payload
+        tcp = TCP(sport=random.randint(1024, 65535), dport=random.choice(exploited_ports), flags="S", window=random_window())
+        packet = ip/tcp  # No payload in a typical SYN flood
+        # send(packet, verbose=False)
         record_packet(packet, "SYN Flood")
 
 # IP Spoofing (keeping the source port and flow key consistent)
+# def ip_spoofing(target_ip, packet_count=100):
+#     base_src_port = random.randint(1024, 65535)  # Fixed source port for consistency
+#     for _ in range(packet_count):
+#         ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
+#         tcp = TCP(sport=base_src_port, dport=random.choice(exploited_ports), flags="PA", window=random_window())
+#         payload = random_payload()
+#         packet = ip/tcp/payload
+#         record_packet(packet, "IP Spoofing")
+
 def ip_spoofing(target_ip, packet_count=100):
-    base_src_port = random.randint(1024, 65535)  # Fixed source port for consistency
     for _ in range(packet_count):
         ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
-        tcp = TCP(sport=base_src_port, dport=random.choice(exploited_ports), flags="PA", window=random_window())
+        tcp = TCP(sport=random.randint(1024, 65535), dport=random.choice(exploited_ports), flags="S", window=random_window())
         payload = random_payload()
         packet = ip/tcp/payload
+        # send(packet, verbose=False)
         record_packet(packet, "IP Spoofing")
 
 # Malformed Packets (keeping the source port and flow key consistent)
+# def malformed_packets(target_ip, packet_count=100):
+#     base_src_port = random.randint(1024, 65535)  # Fixed source port for consistency
+#     for _ in range(packet_count):
+#         ip = IP(dst=target_ip, ihl=random.randint(0, 5), ttl=random_ttl())
+#         tcp = TCP(sport=base_src_port, dport=random.choice(exploited_ports), flags="FPU", window=random_window())
+#         payload = random_payload()
+#         packet = ip/tcp/payload
+#         record_packet(packet, "Malformed Packet")
+
 def malformed_packets(target_ip, packet_count=100):
-    base_src_port = random.randint(1024, 65535)  # Fixed source port for consistency
     for _ in range(packet_count):
-        ip = IP(dst=target_ip, ihl=random.randint(0, 5), ttl=random_ttl())
-        tcp = TCP(sport=base_src_port, dport=random.choice(exploited_ports), flags="FPU", window=random_window())
+        ip = IP(dst=target_ip, ihl=random.choice([5, 6, 7, 8]), ttl=random_ttl())  # Slightly malformed IHL
+        tcp = TCP(sport=random.randint(1024, 65535), dport=random.choice(exploited_ports), flags="FPU", window=random_window())
         payload = random_payload()
         packet = ip/tcp/payload
+        # send(packet, verbose=False)
         record_packet(packet, "Malformed Packet")
 
 # DNS Amplification Attack (keeping the source IP and flow key consistent)
+# def dns_amplification(target_ip, packet_count=50):
+#     base_src_ip = random_ip()  # Fixed source IP for consistency
+#     for _ in range(packet_count):
+#         ip = IP(src=base_src_ip, dst="8.8.8.8", ttl=random_ttl())  # Spoofed IP, targeting Google DNS
+#         udp = UDP(sport=random.randint(1024, 65535), dport=53)
+#         dns = DNS(rd=1, qd=DNSQR(qname="example.com"))
+#         payload = random_payload()
+#         packet = ip/udp/dns/payload
+#         record_packet(packet, "DNS Amplification")
+
 def dns_amplification(target_ip, packet_count=50):
-    base_src_ip = random_ip()  # Fixed source IP for consistency
     for _ in range(packet_count):
-        ip = IP(src=base_src_ip, dst="8.8.8.8", ttl=random_ttl())  # Spoofed IP, targeting Google DNS
+        ip = IP(src=target_ip, dst="8.8.8.8", ttl=random_ttl())  # Spoofed source IP
         udp = UDP(sport=random.randint(1024, 65535), dport=53)
-        dns = DNS(rd=1, qd=DNSQR(qname="example.com"))
-        payload = random_payload()
-        packet = ip/udp/dns/payload
+        dns = DNS(rd=1, qd=DNSQR(qname="example.com"))  # Query that returns a large response
+        packet = ip/udp/dns
+        # send(packet, verbose=False)
         record_packet(packet, "DNS Amplification")
 
 # ICMP Flood (Ping Flood, keeping the source IP and flow key consistent)
+# def icmp_flood(target_ip, packet_count=100):
+#     base_src_ip = random_ip()  # Fixed source IP for consistency
+#     for _ in range(packet_count):
+#         ip = IP(src=base_src_ip, dst=target_ip, ttl=random_ttl())  # Removed the parentheses here
+#         icmp = ICMP()
+#         udp = UDP(sport=random.randint(1024, 65535), dport=53)
+#         payload = random_payload()
+#         packet = ip/icmp/udp/payload
+#         record_packet(packet, "ICMP Flood")
+
 def icmp_flood(target_ip, packet_count=100):
-    base_src_ip = random_ip()  # Fixed source IP for consistency
     for _ in range(packet_count):
-        ip = IP(src=base_src_ip, dst=target_ip, ttl=random_ttl())  # Removed the parentheses here
+        ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
         icmp = ICMP()
-        udp = UDP(sport=random.randint(1024, 65535), dport=53)
-        payload = random_payload()
-        packet = ip/icmp/udp/payload
+        packet = ip/icmp
+        # send(packet, verbose=False)
         record_packet(packet, "ICMP Flood")
+
+# HTTP Flood Attack (simulated by sending GET requests to a target web server)
+def http_flood(target_ip, packet_count=100):
+    for _ in range(packet_count):
+        ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
+        tcp = TCP(sport=random.randint(1024, 65535), dport=80, flags="PA", window=random_window())
+        payload = "GET / HTTP/1.1\r\nHost: {}\r\n\r\n".format(target_ip).encode()
+        packet = ip/tcp/payload
+        # send(packet, verbose=False)
+        record_packet(packet, "HTTP Flood")
+
+# TCP FIN Scan (stealth scan using FIN packets)
+def tcp_fin_scan(target_ip, start_port=1, end_port=1024):
+    for port in range(start_port, end_port + 1):
+        ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
+        tcp = TCP(sport=random.randint(1024, 65535), dport=port, flags="F", window=random_window())
+        packet = ip/tcp
+        # send(packet, verbose=False)
+        record_packet(packet, "TCP FIN Scan")
+
+# Fragmentation Attack (sending fragmented packets)
+def fragmentation_attack(target_ip, packet_count=100):
+    for _ in range(packet_count):
+        ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl(), flags="MF")
+        tcp = TCP(sport=random.randint(1024, 65535), dport=random.choice(exploited_ports), flags="PA", window=random_window())
+        payload = random_payload()
+        packet = ip/tcp/payload
+        fragments = fragment(packet, fragsize=8)
+        for frag in fragments:
+            # send(frag, verbose=False)
+            record_packet(frag, "Fragmentation Attack")
+
+# ARP Poisoning Attack (simulated, as true ARP poisoning requires active network manipulation)
+def arp_poisoning(target_ip, gateway_ip, packet_count=1000):
+    target_mac = random_mac()
+    gateway_mac = random_mac()
+
+    for _ in range(packet_count):
+        # ARP response to target, claiming to be the gateway
+        arp_response_to_target = ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=gateway_ip, hwsrc=gateway_mac)
+        # ARP response to gateway, claiming to be the target
+        arp_response_to_gateway = ARP(op=2, pdst=gateway_ip, hwdst=gateway_mac, psrc=target_ip, hwsrc=target_mac)
+
+        # Record both packets to simulate ongoing ARP poisoning
+        record_packet(arp_response_to_target, "ARP Poisoning")
+        record_packet(arp_response_to_gateway, "ARP Poisoning")
+
 
 
 # Execute different types of malicious traffic generation and save to csv
 if __name__ == "__main__":
     print("Starting malicious traffic generation...")
 
-    syn_flood(target_ip, packet_count=200)
-    ip_spoofing(target_ip, packet_count=200)
-    malformed_packets(target_ip, packet_count=200)
-    dns_amplification(target_ip, packet_count=200)
-    icmp_flood(target_ip, packet_count=200)
+    syn_flood(target_ip, packet_count=1000)
+    ip_spoofing(target_ip, packet_count=1000)
+    malformed_packets(target_ip, packet_count=1000)
+    dns_amplification(target_ip, packet_count=1000)
+    icmp_flood(target_ip, packet_count=1000)
+
+    http_flood(target_ip, packet_count=1000)
+    tcp_fin_scan(target_ip, start_port=1, end_port=1023)
+    fragmentation_attack(target_ip, packet_count=1000)
+    arp_poisoning(target_ip, gateway_ip="192.168.1.1")
 
     print(f"Number of records generated: {len(packet_records)}")
     print("Traffic generation completed. Preparing to write CSV...")
 
     # Save records to a csv file
-    csv_file = "malicious_traffic.csv"
+    csv_file = "E:\Stuff\IDS Machine Learning\Source\Tools\malicious_traffic.csv"
     with open(csv_file, mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=packet_records[0].keys())
         writer.writeheader()

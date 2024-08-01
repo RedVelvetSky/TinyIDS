@@ -40,8 +40,10 @@ namespace TinyIDS.Utils
 {
             int[] suspiciousPorts = { 19, 135, 137, 138, 139, 445, 1433, 1720, 1900, 2323, 4444, 5555, 6666, 6667, 6668, 6669, 11211, 12345, 31337, 54321 };
 
-            return suspiciousPorts.Contains(record.SourcePort.GetValueOrDefault()) ||
-                   suspiciousPorts.Contains(record.DestinationPort.GetValueOrDefault());
+            //return suspiciousPorts.Contains(record.SourcePort.GetValueOrDefault()) ||
+            //       suspiciousPorts.Contains(record.DestinationPort.GetValueOrDefault());
+
+            return suspiciousPorts.Contains(record.DestinationPort.GetValueOrDefault());
         }
 
         // Checks if the entropy of the packet is abnormally high or low

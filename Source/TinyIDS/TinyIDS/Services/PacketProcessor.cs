@@ -38,7 +38,7 @@ namespace TinyIDS.Services
 
             if (Filter.ApplySuspiciousPortFilter(record))
             {
-                _logger.Log($"[bold red]Rejected packet based on suspicious port filter (src port: {record.SourcePort}, dst port: {record.DestinationPort})[/]", Verbosity.Basic);
+                _logger.Log($"[bold red]Rejected packet based on suspicious port filter (src port: , dst port: {record.DestinationPort})[/]", Verbosity.Basic);
                 return;
             }
 

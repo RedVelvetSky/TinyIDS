@@ -31,13 +31,13 @@ namespace TinyIDS.Utils
 
             return new PacketRecord
             {
-                Timestamp = timestamp.ToString("o"),
-                SourceMac = ethernetPacket?.SourceHardwareAddress.ToString() ?? string.Empty,
-                DestinationMac = ethernetPacket?.DestinationHardwareAddress.ToString() ?? string.Empty,
+                //Timestamp = timestamp.ToString("o"),
+                //SourceMac = ethernetPacket?.SourceHardwareAddress.ToString() ?? string.Empty,
+                //DestinationMac = ethernetPacket?.DestinationHardwareAddress.ToString() ?? string.Empty,
                 Protocol = ipPacket?.Protocol.ToString() ?? string.Empty,
-                SourceIp = ipPacket?.SourceAddress.ToString() ?? string.Empty,
-                DestinationIp = ipPacket?.DestinationAddress.ToString() ?? string.Empty,
-                SourcePort = tcpPacket?.SourcePort ?? udpPacket?.SourcePort ?? 0,
+                //SourceIp = ipPacket?.SourceAddress.ToString() ?? string.Empty,
+                //DestinationIp = ipPacket?.DestinationAddress.ToString() ?? string.Empty,
+                //SourcePort = tcpPacket?.SourcePort ?? udpPacket?.SourcePort ?? 0,
                 DestinationPort = tcpPacket?.DestinationPort ?? udpPacket?.DestinationPort ?? 0,
                 Length = payloadSize,
                 Ttl = ipPacket?.TimeToLive ?? 0,
@@ -48,9 +48,11 @@ namespace TinyIDS.Utils
                 WindowSize = tcpPacket?.WindowSize ?? 0,
                 PayloadSize = payloadSize,
                 Entropy = entropy,
-                PacketsPerFlow = flowInfo.PacketCount,
-                InterArrivalTime = flowInfo.LastInterArrivalTime.TotalMilliseconds,
-                FlowDuration = flowInfo.FlowDuration.TotalMilliseconds
+
+                // temporal features were removed
+                //PacketsPerFlow = flowInfo.PacketCount,
+                //InterArrivalTime = flowInfo.LastInterArrivalTime.TotalMilliseconds,
+                //FlowDuration = flowInfo.FlowDuration.TotalMilliseconds
             };
         }
 
