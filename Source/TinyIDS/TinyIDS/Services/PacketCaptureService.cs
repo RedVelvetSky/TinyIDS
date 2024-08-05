@@ -29,7 +29,7 @@ namespace TinyIDS.Services
         private static Verbosity _verbosity;
         private CaptureMode _captureMode;
         private static PacketProcessor _packetProcessor;
-        private readonly Logger _logger;
+        private static Logger _logger;
 
         public PacketCaptureService(Verbosity verbosity)
         {
@@ -63,7 +63,7 @@ namespace TinyIDS.Services
         public void PrintSharpPcapVersion()
         {
             var ver = Pcap.SharpPcapVersion;
-            Log($"SharpPcap {ver}", Verbosity.Basic);
+            Log($"Using SharpPcap {ver}", Verbosity.Basic);
         }
 
         private LibPcapLiveDeviceList GetDevices()
@@ -279,6 +279,7 @@ namespace TinyIDS.Services
             {
                 var packet = PacketDotNet.Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
                 var ethernetPacket = packet.Extract<EthernetPacket>();
+                //PacketUtils.PrintType(packet);
 
                 if (ethernetPacket != null)
                 {
@@ -286,7 +287,9 @@ namespace TinyIDS.Services
                     var tcpPacket = ipPacket?.Extract<TcpPacket>();
                     var udpPacket = ipPacket?.Extract<UdpPacket>();
 
+                    LogPacketInfo(packet, Verbosity.Detailed);
                     var record = FeatureExtractor.ExtractFeatures(rawPacket);
+                    
 
                     if (csv != null)
                     {
@@ -296,10 +299,7 @@ namespace TinyIDS.Services
                     }
                 }
 
-                if (_verbosity >= Verbosity.Detailed)
-                {
-                    PacketUtils.PrintType(packet);
-                }
+                
             }
         }
 
@@ -311,6 +311,11 @@ namespace TinyIDS.Services
         private void LogDeviceStatistics(string statistics)
         {
             _logger.LogDeviceStatistics(statistics);
+        }
+
+        public static void LogPacketInfo(PacketDotNet.Packet packet, Verbosity requiredVerbosity)
+        {
+            _logger.LogPacketInfo(packet, requiredVerbosity);
         }
     }
 }

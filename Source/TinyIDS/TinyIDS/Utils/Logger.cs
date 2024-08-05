@@ -1,4 +1,5 @@
-﻿using Spectre.Console;
+﻿using PacketDotNet;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +41,14 @@ namespace TinyIDS.Utils
             //    .Expand());
 
             Console.WriteLine(statistics);
+        }
+
+        public void LogPacketInfo(PacketDotNet.Packet packet, Verbosity requiredVerbosity)
+        {
+            if (_verbosity >= requiredVerbosity)
+            {
+                PacketUtils.PrintType(packet);
+            }
         }
     }
 }

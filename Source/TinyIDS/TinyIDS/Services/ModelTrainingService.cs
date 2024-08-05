@@ -109,6 +109,12 @@ namespace TinyIDS.Services
             // Evaluate the model on the training dataset
             EvaluateModel(mlContext, model, trainData, "Training");
 
+            // Block the thread for 5 seconds
+            Thread.Sleep(3000);
+
+            // Clear the screen
+            AnsiConsole.Clear();
+
             return model;
         }
 
@@ -132,11 +138,29 @@ namespace TinyIDS.Services
             var predictions = model.Transform(data);
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(predictions, "Label", scoreColumnName: "Score", predictedLabelColumnName: "PredictedLabel");
 
-            Console.WriteLine($"Metrics for {datasetName} Dataset:");
-            Console.WriteLine($"- Accuracy: {metrics.Accuracy:P2}");
-            Console.WriteLine($"- AUC: {metrics.AreaUnderRocCurve:P2}");
-            Console.WriteLine($"- F1 Score: {metrics.F1Score:P2}");
-            Console.WriteLine();
+            // Create a table to display the metrics
+            var table = new Table()
+                .AddColumn(new TableColumn("[yellow]Metric[/]").Centered())
+                .AddColumn(new TableColumn("[yellow]Value[/]").Centered());
+
+            // Add rows for each metric
+            table.AddRow("[green]Accuracy[/]", $"[bold]{metrics.Accuracy:P2}[/]");
+            table.AddRow("[green]AUC[/]", $"[bold]{metrics.AreaUnderRocCurve:P2}[/]");
+            table.AddRow("[green]F1 Score[/]", $"[bold]{metrics.F1Score:P2}[/]");
+
+            // Create a panel to encapsulate the table with a title
+            var panel = new Panel(table)
+            {
+                Border = BoxBorder.Rounded,
+                Header = new PanelHeader($"[bold yellow]Metrics for {datasetName} Dataset[/]", Justify.Center),
+                Padding = new Padding(1, 1),
+            };
+
+            // Display the panel
+            AnsiConsole.Write(panel);
+
+            // Optionally add a blank line for spacing
+            AnsiConsole.WriteLine();
         }
 
         public class MappedData

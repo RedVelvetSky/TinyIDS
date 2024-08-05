@@ -86,6 +86,7 @@ namespace TinyIDS.Services
             var packetData = MapPacketRecordToPacketData(record);
 
             // Make prediction using the loaded model
+            Console.WriteLine();
             AnsiConsole.MarkupLine("[yellow]Making prediction for the packet...[/]");
             _modelInferenceService.Predict(packetData);
         }

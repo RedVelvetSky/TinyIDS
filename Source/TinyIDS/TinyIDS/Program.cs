@@ -10,12 +10,14 @@ namespace TinyIDS
     {
         static void Main(string[] args)
         {
-            AnsiConsole.Markup("[bold green]Intrusion Detection System Starting...[/]\n");
+            AnsiConsole.Markup("[blink yellow]Intrusion Detection System Starting...[/]\n");
+
+            AnsiConsole.WriteLine();
 
             string mode = AnsiConsole.Prompt(
                 new TextPrompt<string>("What mode of IDS to use? [green]Train[/] or [green]Capture[/]")
                     .PromptStyle("yellow")
-                    .DefaultValue("Capture by default")
+                    .DefaultValue("capture as default")
                     .Validate(input =>
                     input.Equals("Capture", StringComparison.OrdinalIgnoreCase) ||
                     input.Equals("Train", StringComparison.OrdinalIgnoreCase) ||
@@ -25,7 +27,9 @@ namespace TinyIDS
                 )
             );
 
-            var packetCaptureService = new PacketCaptureService(Utils.Verbosity.Basic);
+            AnsiConsole.WriteLine();
+
+            var packetCaptureService = new PacketCaptureService(Utils.Verbosity.Detailed);
             var modelTrainingService = new TinyIDS.Services.ModelTrainingService(
                         dataPath: "E:\\Stuff\\IDS Machine Learning\\Dataset\\Train\\train.csv",
                         modelPath: "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\model.zip"
@@ -52,7 +56,7 @@ namespace TinyIDS
                     //modelTrainingService.SaveModel(trainedModel, trainedModel.GetOutputSchema());
                     break;
                 default:
-                    packetCaptureService.StartCapture(CaptureMode.Csv);
+                    packetCaptureService.StartCapture(CaptureMode.Flow);
                     break;
             }
 
