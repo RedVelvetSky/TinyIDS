@@ -57,30 +57,30 @@ namespace TinyIDS.Services
             // Extract features
             var record = FeatureExtractor.ExtractFeatures(rawPacket);
 
-            // Apply static filters
-            if (Filter.ApplyPayloadSizeFilter(record, _maxPayloadSize))
-            {
-                _logger.Log($"[bold red]Rejected packet based on payload size filter (size: {record.Length})[/]", Verbosity.Basic);
-                return;
-            }
+            //// Apply static filters
+            //if (Filter.ApplyPayloadSizeFilter(record, _maxPayloadSize))
+            //{
+            //    _logger.Log($"[bold red]Rejected packet based on payload size filter (size: {record.Length})[/]", Verbosity.Basic);
+            //    return;
+            //}
 
-            if (Filter.ApplySuspiciousPortFilter(record))
-            {
-                _logger.Log($"[bold red]Rejected packet based on suspicious port filter (src port: , dst port: {record.DestinationPort})[/]", Verbosity.Basic);
-                return;
-            }
+            //if (Filter.ApplySuspiciousPortFilter(record))
+            //{
+            //    _logger.Log($"[bold red]Rejected packet based on suspicious port filter (src port: , dst port: {record.DestinationPort})[/]", Verbosity.Basic);
+            //    return;
+            //}
 
-            if (Filter.ApplyEntropyFilter(record, _minEntropy, _maxEntropy))
-            {
-                _logger.Log($"[bold red]Rejected packet based on entropy filter (entropy: {record.Entropy})[/]", Verbosity.Basic);
-                return;
-            }
+            //if (Filter.ApplyEntropyFilter(record, _minEntropy, _maxEntropy))
+            //{
+            //    _logger.Log($"[bold red]Rejected packet based on entropy filter (entropy: {record.Entropy})[/]", Verbosity.Basic);
+            //    return;
+            //}
 
-            if (Filter.ApplyAnomalyFilter(record))
-            {
-                _logger.Log($"[bold red]Rejected packet based on anomaly filter[/]", Verbosity.Basic);
-                return;
-            }
+            //if (Filter.ApplyAnomalyFilter(record))
+            //{
+            //    _logger.Log($"[bold red]Rejected packet based on anomaly filter[/]", Verbosity.Basic);
+            //    return;
+            //}
 
             // Convert PacketRecord to PacketData
             var packetData = MapPacketRecordToPacketData(record);
