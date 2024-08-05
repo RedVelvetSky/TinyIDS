@@ -15,6 +15,31 @@
           }
         }
       },
+      "LightGBM/4.5.0": {
+        "type": "package",
+        "build": {
+          "build/LightGBM.props": {},
+          "build/LightGBM.targets": {}
+        },
+        "runtimeTargets": {
+          "runtimes/linux-x64/native/lib_lightgbm.so": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          },
+          "runtimes/osx-x64/native/lib_lightgbm.dylib": {
+            "assetType": "native",
+            "rid": "osx-x64"
+          },
+          "runtimes/win-x64/native/lib_lightgbm.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x64/native/lightgbm.exe": {
+            "assetType": "native",
+            "rid": "win-x64"
+          }
+        }
+      },
       "Microsoft.ML/3.0.1": {
         "type": "package",
         "dependencies": {
@@ -566,6 +591,23 @@
         "lib/netstandard2.0/CsvHelper.xml",
         "lib/netstandard2.1/CsvHelper.dll",
         "lib/netstandard2.1/CsvHelper.xml"
+      ]
+    },
+    "LightGBM/4.5.0": {
+      "sha512": "wYpS7L4RAubCfsuG/aQqzxyQ6+pPT8M/IEbJIz1BU0GQNwDPBpQeMObRFSWSgC3wxw1/QK30xToYdnfE/LjoZQ==",
+      "type": "package",
+      "path": "lightgbm/4.5.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/LightGBM.props",
+        "build/LightGBM.targets",
+        "lightgbm.4.5.0.nupkg.sha512",
+        "lightgbm.nuspec",
+        "runtimes/linux-x64/native/lib_lightgbm.so",
+        "runtimes/osx-x64/native/lib_lightgbm.dylib",
+        "runtimes/win-x64/native/lib_lightgbm.dll",
+        "runtimes/win-x64/native/lightgbm.exe"
       ]
     },
     "Microsoft.ML/3.0.1": {
@@ -1527,6 +1569,7 @@
   "projectFileDependencyGroups": {
     "net7.0": [
       "CsvHelper >= 33.0.1",
+      "LightGBM >= 4.5.0",
       "Microsoft.ML >= 3.0.1",
       "Microsoft.ML.FastTree >= 3.0.1",
       "PacketDotNet >= 1.4.7",
@@ -1577,6 +1620,10 @@
           "CsvHelper": {
             "target": "Package",
             "version": "[33.0.1, )"
+          },
+          "LightGBM": {
+            "target": "Package",
+            "version": "[4.5.0, )"
           },
           "Microsoft.ML": {
             "target": "Package",

@@ -62,3 +62,7 @@ E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\PcapDotNet
 E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\PcapDotNet.Core.dll
 E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\PcapDotNet.Packets.dll
 E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\CsvHelper.dll
+E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\runtimes\linux-x64\native\lib_lightgbm.so
+E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\runtimes\osx-x64\native\lib_lightgbm.dylib
+E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\runtimes\win-x64\native\lib_lightgbm.dll
+E:\Stuff\IDS Machine Learning\Source\TinyIDS\TinyIDS\bin\Debug\net7.0\runtimes\win-x64\native\lightgbm.exe

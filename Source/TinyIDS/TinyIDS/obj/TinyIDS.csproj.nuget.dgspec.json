@@ -44,6 +44,10 @@
               "target": "Package",
               "version": "[33.0.1, )"
             },
+            "LightGBM": {
+              "target": "Package",
+              "version": "[4.5.0, )"
+            },
             "Microsoft.ML": {
               "target": "Package",
               "version": "[3.0.1, )"

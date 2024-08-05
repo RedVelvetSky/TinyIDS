@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "FSYBdV6VUsk0eIQaqG3izohhczJKG1QanQySZTkGsYO+HsKY2jlp4d62P4k+wlYq4BRHYTcG3Fq/KqAA7X6eIg==",
+  "dgSpecHash": "f4R3Hn4x3qtwAFJZh3FL82gaKRszFTAe0bsU8NZ3D/n/raA8qNrNJQrKZ6WKTac6NUkYgKwjYNCsaj1n39Suug==",
   "success": true,
   "projectFilePath": "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\TinyIDS.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\SpaceDimension\\.nuget\\packages\\csvhelper\\33.0.1\\csvhelper.33.0.1.nupkg.sha512",
+    "C:\\Users\\SpaceDimension\\.nuget\\packages\\lightgbm\\4.5.0\\lightgbm.4.5.0.nupkg.sha512",
     "C:\\Users\\SpaceDimension\\.nuget\\packages\\microsoft.ml\\3.0.1\\microsoft.ml.3.0.1.nupkg.sha512",
     "C:\\Users\\SpaceDimension\\.nuget\\packages\\microsoft.ml.cpumath\\3.0.1\\microsoft.ml.cpumath.3.0.1.nupkg.sha512",
     "C:\\Users\\SpaceDimension\\.nuget\\packages\\microsoft.ml.dataview\\3.0.1\\microsoft.ml.dataview.3.0.1.nupkg.sha512",
