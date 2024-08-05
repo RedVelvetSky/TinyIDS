@@ -13,15 +13,23 @@ namespace TinyIDS.Services
 {
     internal class ModelTrainingService
     {
-        public void TrainAndSaveModel()
+        private readonly string _dataPath;
+        private readonly string _modelPath;
+
+        public ModelTrainingService(string dataPath, string modelPath)
+        {
+            _dataPath = dataPath;
+            _modelPath = modelPath;
+        }
+
+        public ITransformer TrainModel()
         {
             // Initialize ML.NET environment
             var mlContext = new MLContext();
 
             // Load data from a text file or any other source
-            string dataPath = "E:\\Stuff\\IDS Machine Learning\\Dataset\\Train\\train.csv";
             IDataView dataView = mlContext.Data.LoadFromTextFile<PacketData>(
-                path: dataPath,
+                path: _dataPath,
                 hasHeader: true,
                 separatorChar: ',');
 
@@ -55,8 +63,7 @@ namespace TinyIDS.Services
                     output.PayloadSize = input.PayloadSize;
                     output.Entropy = input.Entropy;
                     output.IsMalicious = input.IsMalicious;
-                }, contractName: "MapPortsAndFlags") // Assign a non-empty contract name here
-                // Rename the label column
+                }, contractName: "MapPortsAndFlags")
                 .Append(mlContext.Transforms.CopyColumns("Label", "IsMalicious"))
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding(
                     new[]
@@ -96,17 +103,27 @@ namespace TinyIDS.Services
             // Train the model
             var model = trainingPipeline.Fit(trainData);
 
-            // Save the model to a file
-            string modelPath = "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\model.zip";
-            mlContext.Model.Save(model, trainData.Schema, modelPath);
-            Console.WriteLine($"Model saved to {modelPath}");
-
-
             // Evaluate the model on the validation dataset
             EvaluateModel(mlContext, model, testData, "Validation");
 
             // Evaluate the model on the training dataset
             EvaluateModel(mlContext, model, trainData, "Training");
+
+            return model;
+        }
+
+        public void SaveModel(ITransformer model, DataViewSchema modelSchema)
+        {
+            var mlContext = new MLContext();
+            try
+            {
+                mlContext.Model.Save(model, modelSchema, _modelPath);
+                AnsiConsole.MarkupLine($"[green]Model saved successfully to {_modelPath}[/]");
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine($"[red]Failed to save the model: {ex.Message}[/red]");
+            }
         }
 
         // Method to evaluate the model and print metrics

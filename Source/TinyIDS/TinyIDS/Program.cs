@@ -26,6 +26,10 @@ namespace TinyIDS
             );
 
             var packetCaptureService = new PacketCaptureService(Utils.Verbosity.Basic);
+            var modelTrainingService = new TinyIDS.Services.ModelTrainingService(
+                        dataPath: "E:\\Stuff\\IDS Machine Learning\\Dataset\\Train\\train.csv",
+                        modelPath: "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\model.zip"
+                    );
 
             // Handling the selected mode
             switch (mode.ToLower())
@@ -41,14 +45,11 @@ namespace TinyIDS
                     break;
                 case "train":
                     AnsiConsole.Markup("[bold yellow]Train mode selected. Proceeding with training...[/]\n");
-                    // Create an instance of the ModelTrainingService
-                    var modelTrainingService = new ModelTrainingService();
+                    // Train the model
+                    var trainedModel = modelTrainingService.TrainModel();
 
-                    // Train and save the model
-                    modelTrainingService.TrainAndSaveModel();
-
-                    //Console.WriteLine("Model training completed. Press any key to exit...");
-                    //Console.ReadKey();
+                    // Optionally save the model
+                    //modelTrainingService.SaveModel(trainedModel, trainedModel.GetOutputSchema());
                     break;
                 default:
                     packetCaptureService.StartCapture(CaptureMode.Csv);

@@ -7,40 +7,72 @@ namespace TinyIDS.Services
 {
     internal class ModelInferenceService
     {
-        private readonly string ModelPath = "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\model.zip";
-        private readonly MLContext mlContext;
-        private ITransformer trainedModel;
-        private PredictionEngine<PacketData, PacketPrediction> predictionEngine;
+        private readonly string _modelPath;
+        private readonly MLContext _mlContext;
+        private ITransformer _loadedModel;
+        private PredictionEngine<PacketData, Prediction> _predictionEngine;
 
-        public ModelInferenceService()
+        public ModelInferenceService(ITransformer trainedModel)
         {
-            mlContext = new MLContext();
-            LoadModel();
+            _mlContext = new MLContext();
+
+            // Create a PredictionEngine from the trained model
+            _predictionEngine = _mlContext.Model.CreatePredictionEngine<PacketData, Prediction>(trainedModel);
+
+            AnsiConsole.MarkupLine("[green]Model initialized for inference.[/]");
         }
 
         private void LoadModel()
         {
-            AnsiConsole.MarkupLine("[bold yellow]Loading the model...[/]");
-            DataViewSchema modelSchema;
-            trainedModel = mlContext.Model.Load(ModelPath, out modelSchema);
-            predictionEngine = mlContext.Model.CreatePredictionEngine<PacketData, PacketPrediction>(trainedModel);
-            AnsiConsole.MarkupLine("[bold green]Model loaded successfully![/]");
+            if (!System.IO.File.Exists(_modelPath))
+            {
+                AnsiConsole.MarkupLine($"[red]Model file not found at path: {_modelPath}[/red]");
+                return;
+            }
+
+            try
+            {
+                // Load the trained model
+                DataViewSchema modelSchema;
+                _loadedModel = _mlContext.Model.Load(_modelPath, out modelSchema);
+                _predictionEngine = _mlContext.Model.CreatePredictionEngine<PacketData, Prediction>(_loadedModel);
+
+                AnsiConsole.MarkupLine("[green]Model loaded successfully.[/]");
+            }
+            catch (Exception ex)
+            {
+                // Log detailed information about the exception
+                AnsiConsole.MarkupLine($"[red]Failed to load model: {ex.Message}[/]");
+                AnsiConsole.MarkupLine($"[red]Stack Trace: {ex.StackTrace}[/]");
+                if (ex.InnerException != null)
+                {
+                    AnsiConsole.MarkupLine($"[red]Inner Exception: {ex.InnerException.Message}[/]");
+                }
+            }
         }
 
-        public PacketPrediction Predict(PacketData inputData)
+        public void Predict(PacketData packetData)
         {
-            AnsiConsole.MarkupLine("[bold yellow]Making prediction...[/]");
-            var prediction = predictionEngine.Predict(inputData);
-            AnsiConsole.MarkupLine("[bold green]Prediction completed![/]");
-            return prediction;
+            try
+            {
+                var prediction = _predictionEngine.Predict(packetData);
+
+                string result = prediction.PredictedLabel ? "Malicious" : "Non-Malicious";
+                AnsiConsole.MarkupLine($"[yellow]Prediction:[/] {result}");
+                AnsiConsole.MarkupLine($"[yellow]Score:[/] {prediction.Score}");
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine($"[red]Prediction failed: {ex.Message}[/red]");
+            }
         }
     }
 
-    public class PacketPrediction
+    // Data model class for the output prediction
+    public class Prediction
     {
         [ColumnName("PredictedLabel")]
-        public string PredictedLabel { get; set; }
-
-        public float[] Score { get; set; }
+        public bool PredictedLabel { get; set; }
+        public float Score { get; set; }
     }
 }

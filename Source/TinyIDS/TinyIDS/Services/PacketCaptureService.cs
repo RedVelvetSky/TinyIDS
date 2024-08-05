@@ -34,7 +34,7 @@ namespace TinyIDS.Services
         public PacketCaptureService(Verbosity verbosity)
         {
             _logger = new Logger(verbosity);
-            _packetProcessor = new PacketProcessor(_logger);
+            _packetProcessor = new PacketProcessor(_logger, "E:\\Stuff\\IDS Machine Learning\\Dataset\\Train\\train.csv");
         }
 
         public void ListDevices()
