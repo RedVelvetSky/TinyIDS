@@ -288,7 +288,7 @@ def fragmentation_attack(target_ip, packet_count=100):
             record_packet(frag, "Fragmentation Attack")
 
 # ARP Poisoning Attack (simulated, as true ARP poisoning requires active network manipulation)
-def arp_poisoning(target_ip, gateway_ip, packet_count=1000):
+def arp_poisoning(target_ip, gateway_ip, packet_count=7000):
     target_mac = random_mac()
     gateway_mac = random_mac()
 
@@ -308,16 +308,16 @@ def arp_poisoning(target_ip, gateway_ip, packet_count=1000):
 if __name__ == "__main__":
     print("Starting malicious traffic generation...")
 
-    syn_flood(target_ip, packet_count=1000)
-    ip_spoofing(target_ip, packet_count=1000)
-    malformed_packets(target_ip, packet_count=1000)
-    dns_amplification(target_ip, packet_count=1000)
-    icmp_flood(target_ip, packet_count=1000)
+    syn_flood(target_ip, packet_count=8000) # tcp
+    ip_spoofing(target_ip, packet_count=8000) # tcp
+    malformed_packets(target_ip, packet_count=8000) # tcp
+    dns_amplification(target_ip, packet_count=8000) # udp
+    icmp_flood(target_ip, packet_count=8000) # icmp
 
-    http_flood(target_ip, packet_count=1000)
-    tcp_fin_scan(target_ip, start_port=1, end_port=1023)
-    fragmentation_attack(target_ip, packet_count=1000)
-    arp_poisoning(target_ip, gateway_ip="192.168.1.1")
+    http_flood(target_ip, packet_count=7000) # tcp
+    tcp_fin_scan(target_ip, start_port=1, end_port=1023) # tcp
+    fragmentation_attack(target_ip, packet_count=700) # unknown (x10 size)
+    arp_poisoning(target_ip, gateway_ip="192.168.1.1") # unknown
 
     print(f"Number of records generated: {len(packet_records)}")
     print("Traffic generation completed. Preparing to write CSV...")
