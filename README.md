@@ -8,10 +8,10 @@ TinyIDS is a lightweight Intrusion Detection System (IDS) implemented in C#. It 
 
 - **Packet Capture**: Captures network packets using the SharpPcap library and processes them for analysis.
 - **Machine Learning Integration**: Uses ML.NET to train and infer a model for detecting malicious packets.
-- **Multiple Modes**: Operates in different modes, including training, capturing, and reading packet data.
+- **Multiple Modes**: Operates in different modes, including training ML model, capturing, and reading packet data.
 - **Command-Line Interface**: Utilizes Spectre.Console for a user-friendly command-line interface with interactive prompts.
 
-## Project Structure
+## Project Structure (main files)
 
 - **`Program.cs`**: The entry point of the application. Handles user input and starts the appropriate IDS mode.
 - **`PacketCaptureService.cs`**: Manages packet capturing using different modes (CSV, Cap, Flow).
@@ -56,14 +56,15 @@ TinyIDS is a lightweight Intrusion Detection System (IDS) implemented in C#. It 
        1. When prompted, select `Train`.
        2. The system will load the training data from the specified path.
        3. The training process will begin, and the model will be evaluated on the validation dataset.
-       4. Once training is complete, the model will be saved to the specified location.
+       4. Once training is complete, the can be saved to the specified location.
 
    - **Capture**: This mode captures live network traffic using a selected network interface. The captured data can be saved in CSV or Cap file format.
      - **Steps**:
        1. Select `Capture` when prompted.
        2. Choose the network interface to capture packets from.
        3. Select the output format (`CSV` or `Cap`).
-       4. The application will begin capturing packets. You can stop the capture by pressing `Enter`.
+       4. For the debugging purposes, model will be trained first, evaluated and used for further predictions
+       5. The application will begin capturing packets. You can stop the capture by pressing `Enter`.
 
    - **Read**: This mode allows you to read and analyze previously captured packet data from a file.
      - **Steps**:
