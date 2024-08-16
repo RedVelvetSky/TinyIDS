@@ -1,0 +1,89 @@
+\documentclass{article}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{graphicx}
+
+\title{Intrusion Detection System (IDS) (both Standard Approach and Machine Learning)}
+\author{Vladyslav Furda}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    This specification presents the design and future implementation of an Intrusion Detection System (IDS) that combines traditional detecting methods with machine learning techniques to effectively detect anomalous network packets. The IDS aims to enhance network security by identifying potential threats and unusual patterns that may indicate malicious activities such as pinging, mapping or ddosing. This documentation provides an overview of future system's features, possible libraries used, and the methodologies that will be applied in developing of this IDS.
+\end{abstract}
+
+\section{Introduction}
+    Intrusion Detection Systems (IDS) are critical components in securing network environments. Traditional IDS methods rely on predefined rules and signatures to detect known threats. However, these methods can be limited in identifying new or evolving attacks, moreover, they can be fooled. To address this limitation, my IDS integrates machine learning techniques to detect anomalies in network traffic, providing a more robust and adaptive security solution, that can generalize similarities and ehance performance.
+
+\section{System Overview}
+    The IDS is designed to monitor network traffic in real-time (or near real-time), analyze packet data, and identify potential security threats. The system will incorporate both signature-based detection and anomaly-based detection using machine learning.
+
+\section{Features}
+    \begin{itemize}
+        \item \textbf{Real-time Monitoring:} Continuously monitors network traffic for suspicious activities.
+        \item \textbf{Signature-based Detection:} Utilizes predefined rules and signatures to detect known threats.
+        \item \textbf{Anomaly-based Detection:} Employs machine learning models to identify unusual patterns and anomalies in network traffic.
+        \item \textbf{Alert System:} Generates alerts and logs for detected intrusions and anomalies.
+        \item \textbf{User Interface:} Provides a command line interface (CLI) for configuring the IDS and viewing alerts and logs.
+    \end{itemize}
+
+\section{Technologies and Libraries}
+    The IDS system is implemented in C\#. The following libraries and frameworks will be utilized:
+    \begin{itemize}
+        \item \textbf{SharpPcap:} A packet capture library for .NET, providing capabilities to capture and analyze network packets.
+        \item \textbf{PacketDotNet:} A .NET library for decoding and analyzing network packets captured using SharpPcap.
+        \item \textbf{ML.NET:} A machine learning framework for .NET, used for building and training machine learning models for anomaly detection.
+        \item \textbf{Spectre.Console:} For developing a cute graphical user interface.
+        \item \textbf{NLog:} A logging library for .NET, used for logging alerts and system events.
+    \end{itemize}
+
+\section{Methodology}
+    The IDS employs a hybrid approach to detect intrusions:
+    \subsection{Signature-based Detection}
+        \begin{itemize}
+            \item Predefined signatures and rules are created based on known threats and attack patterns.
+            \item Incoming network packets are compared against these signatures to detect potential threats.
+        \end{itemize}
+
+    \subsection{Anomaly-based Detection}
+        \begin{itemize}
+            \item Network traffic data is collected and preprocessed.
+            \item Machine learning models are trained using historical network traffic data to learn normal behavior. Dataset will be taken from Kaggle.
+            \item The trained models are deployed to identify anomalies in traffic.
+        \end{itemize}
+
+\section{Implementation Details}
+    \subsection{Packet Capture and Analysis}
+        \begin{itemize}
+            \item SharpPcap is used to capture live network packets.
+            \item PacketDotNet decodes the captured packets for analysis.
+        \end{itemize}
+
+    \subsection{Machine Learning Model}
+        \begin{itemize}
+            \item ML.NET or TensorFlow.NET/Keras.NET is used to build and train the machine learning model.
+            \item Various algorithms, such as Random Forest, Decision Trees, and Neural Networks, are explored for anomaly detection.
+        \end{itemize}
+
+    \subsection{Alert Generation}
+        \begin{itemize}
+            \item The system generates alerts for any detected threats or anomalies.
+            \item Alerts are logged using NLog (maybe) and displayed in the user interface.
+        \end{itemize}
+
+\section{Work to be done}
+    \begin{itemize}
+        \item Get familiar with dataset.
+        \item Train model and test it.
+        \item Get information about signature based detection.
+        \item Implement first versions of the IDS, combining two approaches.
+        \item Enhance CLI for better usability.
+        \item Enhance the machine learning model with more training data and feature engineering.
+        \item Integrate the IDS with other security tools and systems for comprehensive security management.
+    \end{itemize}
+
+\end{document}
