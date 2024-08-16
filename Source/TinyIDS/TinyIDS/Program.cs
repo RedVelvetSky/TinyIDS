@@ -15,9 +15,9 @@ namespace TinyIDS
             AnsiConsole.WriteLine();
 
             string mode = AnsiConsole.Prompt(
-                new TextPrompt<string>("What mode of IDS to use? [green]Train[/] or [green]Capture[/]")
+                new TextPrompt<string>("What mode of IDS to use? [green]Train[/], [green]Capture[/] or [green]Read[/]")
                     .PromptStyle("yellow")
-                    .DefaultValue("capture as default")
+                    .DefaultValue("capture")
                     .Validate(input =>
                     input.Equals("Capture", StringComparison.OrdinalIgnoreCase) ||
                     input.Equals("Train", StringComparison.OrdinalIgnoreCase) ||
@@ -29,61 +29,89 @@ namespace TinyIDS
 
             AnsiConsole.WriteLine();
 
-            var packetCaptureService = new PacketCaptureService(Utils.Verbosity.Detailed);
-            var modelTrainingService = new TinyIDS.Services.ModelTrainingService(
-                        dataPath: "..\\..\\..\\Dataset\\Train\\train.csv",
-                        modelPath: ".\\model.zip"
-                    );
+            // Prompt for dataset path and model save path if in Train mode
+            string dataPath = "";
+            string modelPath = "";
+
+            if (mode.Equals("Train", StringComparison.OrdinalIgnoreCase) || mode.Equals("capture", StringComparison.OrdinalIgnoreCase))
+            {
+                dataPath = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter the path for the training dataset:")
+                        .PromptStyle("yellow")
+                        .DefaultValue("..\\..\\..\\Dataset\\Train\\train.csv")
+                );
+
+                modelPath = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter the path to save the trained model:")
+                        .PromptStyle("yellow")
+                        .DefaultValue(".\\model.zip")
+                );
+            }
+
+            AnsiConsole.WriteLine();
+
+            // Prompt for verbosity level
+            var verbosity = AnsiConsole.Prompt(
+                new SelectionPrompt<Utils.Verbosity>()
+                    .Title("Choose verbosity level:")
+                    .AddChoices(Utils.Verbosity.None, Utils.Verbosity.Basic, Utils.Verbosity.Detailed)
+                    .UseConverter(v => v.ToString())
+            );
+
+            AnsiConsole.WriteLine();
+
+            
 
             // Handling the selected mode
             switch (mode.ToLower())
             {
                 case "capture":
-                    AnsiConsole.Markup("[bold yellow]Capture mode selected. Proceeding with data capture...[/]\n");
-                   
-                    packetCaptureService.StartCapture(CaptureMode.Csv);
+                    // Initialize services for Capture mode
+                    var packetCaptureService = new PacketCaptureService(verbosity);
+                    var captureModeModelTrainingService = new ModelTrainingService(dataPath: dataPath, modelPath: modelPath);
+
+                    // Prompt for capture mode
+                    var captureMode = AnsiConsole.Prompt(
+                        new SelectionPrompt<CaptureMode>()
+                            .Title("Choose capture mode:")
+                            .AddChoices(CaptureMode.Csv, CaptureMode.Cap, CaptureMode.Flow)
+                            .UseConverter(c => c.ToString())
+                    );
+
+                    AnsiConsole.Markup($"[bold yellow]Capture mode selected: {captureMode}. Proceeding with data capture...[/]\n");
+
+                    packetCaptureService.StartCapture(captureMode);
                     break;
                 case "read":
-                    AnsiConsole.Markup("[bold yellow]Capture mode selected. Proceeding with data capture...[/]\n");
-                    //packetCaptureService.ReadCaptureFile("E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\bin\\Debug\\net7.0\\test");
+                    // Prompt for file path to read
+                    var filePath = AnsiConsole.Prompt(
+                        new TextPrompt<string>("Enter the path of the file to read:")
+                            .PromptStyle("yellow")
+                    );
+
+                    AnsiConsole.Markup("[bold yellow]Read mode selected. Proceeding with reading the capture file...[/]\n");
+
+                    var readService = new PacketReadService(verbosity); // Initialize the correct service
+                    readService.ReadCaptureFile(filePath);
                     break;
+
                 case "train":
+                    // Initialize services for Train mode
+                    var trainModeModelTrainingService = new ModelTrainingService(dataPath: dataPath, modelPath: modelPath);
+
                     AnsiConsole.Markup("[bold yellow]Train mode selected. Proceeding with training...[/]\n");
                     // Train the model
-                    var trainedModel = modelTrainingService.TrainModel();
-
-                    // Optionally save the model
-                    //modelTrainingService.SaveModel(trainedModel, trainedModel.GetOutputSchema());
+                    var trainedModel = trainModeModelTrainingService.TrainModel();
                     break;
                 default:
-                    packetCaptureService.StartCapture(CaptureMode.Flow);
+                    // Initialize services for Default mode (Flow)
+                    var defaultPacketCaptureService = new PacketCaptureService(verbosity);
+                    var defaultModeModelTrainingService = new ModelTrainingService(dataPath: dataPath, modelPath: modelPath);
+
+                    AnsiConsole.Markup("[bold yellow]Default mode selected. Proceeding with Flow capture...[/]\n");
+                    defaultPacketCaptureService.StartCapture(CaptureMode.Flow);
                     break;
             }
-
-
-            
-
-            
-
         }
     }
 }
-
-// Create an instance of the ModelTrainingService
-//var modelTrainingService = new ModelTrainingService();
-
-// Train and save the model
-//modelTrainingService.TrainAndSaveModel();
-
-//Console.WriteLine("Model training completed. Press any key to exit...");
-//Console.ReadKey();
-
-//var modelInferenceService = new ModelInferenceService();
-
-// Example input data for prediction
-//var inputData = new PacketData {};
-
-//var prediction = modelInferenceService.Predict(inputData);
-
-//AnsiConsole.MarkupLine($"[bold yellow]Predicted Label: {prediction.PredictedLabel}[/]");
-//AnsiConsole.MarkupLine($"[bold yellow]Scores: {string.Join(", ", prediction.Score)}[/]");

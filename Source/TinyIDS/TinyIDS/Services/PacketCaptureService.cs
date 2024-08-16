@@ -104,7 +104,7 @@ namespace TinyIDS.Services
         public void StartCapture(CaptureMode captureMode)
         {
             _captureMode = captureMode;
-           
+
             Log("Starting capture...", Verbosity.Basic);
 
             // Print SharpPcap version
@@ -186,82 +186,6 @@ namespace TinyIDS.Services
 
             Log("[bold green]Capture stopped.[/]", Verbosity.Basic);
             LogDeviceStatistics(device.Statistics.ToString());
-        }
-
-        public void ReadCaptureFile(string name)
-        {
-
-            PrintSharpPcapVersion();
-            string capFile = name;
-            AnsiConsole.MarkupLine($"[bold]Opening '{capFile}'[/]");
-
-            try
-            {
-                var device = new CaptureFileReaderDevice(capFile);
-                device.Open();
-                device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrivalRead);
-                AnsiConsole.MarkupLine($"-- Capturing from '[bold yellow]{capFile}[/]', hit 'Ctrl-C' to exit...");
-
-
-                var startTime = DateTime.Now;
-                device.Capture();
-                device.Close();
-                var endTime = DateTime.Now;
-                AnsiConsole.MarkupLine("[bold]-- End of file reached.[/]");
-                var duration = endTime - startTime;
-                AnsiConsole.MarkupLine($"Read [bold]{packetIndex}[/] packets in [bold]{duration.TotalSeconds}[/]s");
-
-                AnsiConsole.Markup("[bold]Hit 'Enter' to exit...[/]");
-                Console.ReadLine();
-            }
-            catch (Exception e)
-            {
-                AnsiConsole.MarkupLine("[bold red]Caught exception when opening file: [/]" + e);
-            }
-        }
-
-        private static int packetIndex = 0;
-
-        /// <summary>
-        /// Prints the time and length of each received packet (ORIGINAL CAPTURE VERSION)
-        /// </summary>
-        //private static void device_OnPacketArrivalCapture(object sender, PacketCapture e)
-        //{
-        //    //var device = (ICaptureDevice)sender;
-
-        //    // write the packet to the file
-        //    var rawPacket = e.GetPacket();
-        //    captureFileWriter.Write(rawPacket);
-        //    Console.WriteLine("Packet dumped to file.");
-
-        //    if (rawPacket.LinkLayerType == PacketDotNet.LinkLayers.Ethernet)
-        //    {
-        //        var packet = PacketDotNet.Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
-        //        var ethernetPacket = (EthernetPacket)packet;
-
-        //        Console.WriteLine("{0} At: {1}:{2}: MAC:{3} -> MAC:{4}",
-        //                          packetIndex,
-        //                          rawPacket.Timeval.Date.ToString(),
-        //                          rawPacket.Timeval.Date.Millisecond,
-        //                          ethernetPacket.SourceHardwareAddress,
-        //                          ethernetPacket.DestinationHardwareAddress);
-        //        packetIndex++;
-        //    }
-        //}
-
-        //ORIGINAL READ VERSION
-        private static void device_OnPacketArrivalRead(object sender, PacketCapture e)
-        {
-            packetIndex++;
-
-            var rawPacket = e.GetPacket();
-            var packet = PacketDotNet.Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
-
-            var ethernetPacket = packet.Extract<EthernetPacket>();
-            if (ethernetPacket != null)
-            {
-                AnsiConsole.MarkupLine($"{packetIndex} At: [bold]{e.Header.Timeval.Date.ToString()}[/]:{e.Header.Timeval.Date.Millisecond}: MAC:{ethernetPacket.SourceHardwareAddress} -> MAC:{ethernetPacket.DestinationHardwareAddress}");
-            }
         }
 
         private static void device_OnPacketArrivalCapture(object sender, PacketCapture e)
