@@ -2,6 +2,8 @@
 
 TinyIDS is a lightweight Intrusion Detection System (IDS) implemented in C#. It uses machine learning to detect potentially malicious network traffic by capturing, processing, and analyzing network packets.
 
+![Main choose menu](./Media/Images/img2.png)
+
 **USE ONLY FOR THE PURPOSE OF FUN AND EDUCATION. NOT SUITABLE FOR ANY KIND OF PRODUCTION.**
 
 ## Features
@@ -16,6 +18,7 @@ TinyIDS is a lightweight Intrusion Detection System (IDS) implemented in C#. It 
 - **`Program.cs`**: The entry point of the application. Handles user input and starts the appropriate IDS mode.
 - **`PacketCaptureService.cs`**: Manages packet capturing using different modes (CSV, Cap, Flow).
 - **`ModelTrainingService.cs`**: Handles the training of the machine learning model using packet data.
+![Model training stats](./Media/Images/img1.png)
 - **`ModelInferenceService.cs`**: Provides the inference capabilities to predict whether a packet is malicious.
 - **`PacketProcessor.cs`**: Processes captured packets, extracts features, and utilizes the trained model for prediction.
 - **`FeatureExtractor.cs`**: Extracts features from packets to be used in model training and inference.
