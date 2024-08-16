@@ -31,8 +31,8 @@ namespace TinyIDS
 
             var packetCaptureService = new PacketCaptureService(Utils.Verbosity.Detailed);
             var modelTrainingService = new TinyIDS.Services.ModelTrainingService(
-                        dataPath: "E:\\Stuff\\IDS Machine Learning\\Dataset\\Train\\train.csv",
-                        modelPath: "E:\\Stuff\\IDS Machine Learning\\Source\\TinyIDS\\TinyIDS\\model.zip"
+                        dataPath: "..\\..\\..\\Dataset\\Train\\train.csv",
+                        modelPath: ".\\model.zip"
                     );
 
             // Handling the selected mode
